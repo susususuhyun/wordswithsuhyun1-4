@@ -2,516 +2,381 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>얼룩말영어학원 - 중등 베이직 단어장</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>워마 중등실력 어원 단어장 (Day 1~2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-color: #1a1a1a;
-            --accent-color: #ffd700;
-            --bg-color: #f5f6fa;
-            --card-bg: #ffffff;
-            --text-main: #2f3640;
-            --text-sub: #718093;
-            --border-color: #dcdde1;
-            
-            /* 테스트 피드백용 색상 */
-            --color-correct: #10ac84;
-            --color-wrong: #ee5253;
-        }
+        /* 폰트 및 앱 컨테이너 설정 */
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f0fdf4; overflow-x: hidden; margin: 0; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding-bottom: 60px;
-        }
-
-        header {
-            background-color: var(--primary-color);
-            color: #ffffff;
-            padding: 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        header h1 {
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-        }
-
-        header p {
-            font-size: 0.8rem;
-            color: var(--accent-color);
-            margin-top: 2px;
-        }
-
-        .tab-menu {
-            display: flex;
-            background: #ffffff;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 12px;
-            text-align: center;
-            border: none;
-            background: none;
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: var(--text-sub);
-            cursor: pointer;
-        }
-
-        .tab-btn.active {
-            color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 15px;
-        }
-
-        .panel {
-            display: none;
-        }
-
-        .panel.active {
-            display: block;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .btn-ctrl {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--primary-color);
-            background: #ffffff;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-ctrl.active {
-            background: var(--primary-color);
-            color: #ffffff;
-        }
-
-        .word-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px 20px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .word-num {
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            font-weight: bold;
-        }
-
-        .word-eng {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #111;
-        }
-
-        .word-kor {
-            font-size: 1.05rem;
-            color: #d63031;
-            font-weight: bold;
-            margin-top: 5px;
-            word-break: keep-all;
-        }
-
-        .etymology-box {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border-color);
-            font-size: 0.85rem;
-            color: #555;
-            line-height: 1.4;
-        }
-
-        .etymology-box strong {
-            color: #2e86de;
-        }
-
-        .hide-eng .word-eng { opacity: 0; }
-        .hide-kor .word-kor { opacity: 0; }
-
-        /* 테스트 섹션 스타일 */
-        .test-setup {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .btn-start {
-            background: var(--primary-color);
-            color: #fff;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            margin-top: 15px;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .test-box {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            display: none;
-        }
-
-        .test-q-num {
-            font-size: 0.9rem;
-            color: var(--text-sub);
-            margin-bottom: 5px;
-        }
-
-        .test-question {
-            font-size: 1.4rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .options-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .option-btn {
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            background: #fff;
-            border-radius: 8px;
-            text-align: left;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            outline: none;
-        }
-
-        .option-btn.correct {
-            background-color: var(--color-correct) !important;
-            color: white !important;
-            border-color: var(--color-correct) !important;
-        }
-
-        .option-btn.wrong {
-            background-color: var(--color-wrong) !important;
-            color: white !important;
-            border-color: var(--color-wrong) !important;
-        }
-
-        .option-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
-        }
+        /* 아코디언 애니메이션 (단어 상세 정보) */
+        .accordion-content { transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease, opacity 0.35s ease; max-height: 0; opacity: 0; overflow: hidden; }
+        .accordion-content.open { max-height: 400px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; }
         
-        .option-btn.correct:disabled, .option-btn.wrong:disabled {
-            opacity: 1;
-        }
+        /* 3D 플래시카드 애니메이션 */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
 
-        .score-view {
-            text-align: center;
-            display: none;
-            background: #fff;
-            padding: 30px 20px;
-            border-radius: 12px;
-        }
+        /* 네비게이션 탭 액티브 스타일 */
+        .tab-btn.active { color: #16a34a; border-bottom-color: #16a34a; font-weight: 700; background-color: #dcfce7; }
 
-        .score-num {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #10ac84;
-            margin: 15px 0;
-        }
+        /* 모바일 최적화 컨테이너 */
+        .app-container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>얼룩말영어학원</h1>
-        <p>중등 베이직 마스터 단어장 (37 & 38과)</p>
+<div class="app-container flex flex-col h-screen overflow-hidden">
+    
+    <!-- 상단 헤더 -->
+    <header class="bg-green-600 text-white p-4 sticky top-0 z-20 flex justify-between items-center shadow-lg">
+        <div>
+            <h1 class="text-xl font-extrabold tracking-tight"><i class="fa-solid fa-leaf mr-2"></i>워마 어원 단어장</h1>
+            <p class="text-xs text-green-200 mt-1 font-medium">중등 실력 (Day 1 - 2)</p>
+        </div>
+        <button onclick="toggleMode()" id="modeToggleBtn" class="bg-white text-green-600 px-4 py-1.5 rounded-full text-sm font-bold shadow-md hover:bg-green-50 transition transform active:scale-95">
+            <i class="fa-solid fa-layer-group mr-1"></i> 카드모드
+        </button>
     </header>
 
-    <div class="tab-menu">
-        <button class="tab-btn active" onclick="switchTab('study')">📖 단어 학습</button>
-        <button class="tab-btn" onclick="switchTab('test')">📝 실시간 테스트</button>
+    <!-- Day 1, Day 2 탭 -->
+    <div class="flex bg-white shadow-sm sticky top-[72px] z-10 border-b border-gray-200">
+        <button id="tab-1" onclick="setLesson(1)" class="tab-btn active flex-1 py-3.5 text-sm text-gray-500 border-b-2 border-transparent transition duration-200">Day 1 (성격·기질)</button>
+        <button id="tab-2" onclick="setLesson(2)" class="tab-btn flex-1 py-3.5 text-sm text-gray-500 border-b-2 border-transparent transition duration-200">Day 2 (외모·특징)</button>
     </div>
 
-    <div class="container">
-        <div id="study-panel" class="panel active">
-            <div class="controls">
-                <button id="btn-show-all" class="btn-ctrl active" onclick="setDisplayMode('all')">모두 보기</button>
-                <button id="btn-hide-eng" class="btn-ctrl" onclick="setDisplayMode('eng')">영어 가리기</button>
-                <button id="btn-hide-kor" class="btn-ctrl" onclick="setDisplayMode('kor')">뜻 가리기</button>
-            </div>
-            <div id="word-list-container"></div>
+    <!-- 리스트 뷰 영역 -->
+    <main id="listView" class="flex-1 overflow-y-auto p-4 space-y-6 pb-24 bg-gray-50">
+        <!-- JS로 동적 렌더링 -->
+    </main>
+
+    <!-- 플래시카드 뷰 영역 -->
+    <div id="flashcardView" class="hidden absolute inset-0 bg-gray-900 bg-opacity-95 z-30 flex-col pb-10">
+        <div class="flex justify-between items-center p-5 text-white">
+            <span id="flashcardCounter" class="text-sm font-bold bg-gray-800 px-4 py-1.5 rounded-full border border-gray-600 shadow-inner">1 / 30</span>
+            <button onclick="toggleMode()" class="text-gray-400 hover:text-white transition transform hover:rotate-90"><i class="fa-solid fa-xmark text-3xl"></i></button>
         </div>
 
-        <div id="test-panel" class="panel">
-            <div id="test-setup-box" class="test-setup">
-                <h3>VOCA 실력 점검 테스트</h3>
-                <p style="margin-top: 8px; color: var(--text-sub); font-size: 0.9rem;">
-                    통합 40단어 중 무작위 10문항이 사지선다형으로 출제됩니다.
-                </p>
-                <button class="btn-start" onclick="startTest()">테스트 시작하기</button>
-            </div>
-
-            <div id="test-main-box" class="test-box">
-                <div class="test-q-num"><span id="curr-q-idx">1</span> / 10</div>
-                <div id="test-question-text" class="test-question">question</div>
-                <div id="test-options" class="options-list"></div>
-            </div>
-
-            <div id="test-score-box" class="score-view">
-                <h3>테스트 결과</h3>
-                <div id="final-score" class="score-num">0 / 10</div>
-                <p id="score-comment" style="color: var(--text-sub); margin-bottom: 20px;"></p>
-                <button class="btn-start" onclick="resetTest()">다시 도전하기</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 37과 및 38과 데이터 완벽 통합 (총 40개 단어 누락 없음)
-        const vocabData = [
-            // 워마중등베이직 37과 (1~20)
-            { eng: "fall", kor: "가을: 떨어지다", ety: "나뭇잎이 나무에서 아래로 떨어지는(fall) 계절을 의미함.", cog: "fallacy (오류), windfall (우발적인 소득)" },
-            { eng: "forecast", kor: "예측, 예보; 예측하다", ety: "fore(미리) + cast(던지다). 앞으로 일어날 일을 미리 가늠해 던져봄.", cog: "broadcast (방송하다), cast (던지다)" },
-            { eng: "blow", kor: "(바람이) 불다", ety: "고대 영어 blawan(불다, 숨을 내쉬다)에서 유래.", cog: "blower (송풍기), blowhole (고래의 숨구멍)" },
-            { eng: "clear", kor: "(날씨가) 맑은", ety: "라틴어 clarus(맑은, 밝은)에서 유래. 흐린 구름이 걷히고 깨끗해진 상태.", cog: "clarity (명확성), clarify (명확하게 하다)" },
-            { eng: "winter", kor: "겨울", ety: "인도유럽조어 wed(물, 비)에서 유래. 비나 눈이 많이 내리는 추운 계절.", cog: "wet (젖은), water (물)" },
-            { eng: "all day (long)", kor: "하루 종일", ety: "하루(all day)라는 시간의 길이 전체를 강조(long)한 표현.", cog: "lifelong (평생의)" },
-            { eng: "at first", kor: "처음에", ety: "가장 첫 번째(first) 위치나 시점에 도달해 있음을 나타내는 숙어.", cog: "firstly (우선, 첫째로)" },
-            { eng: "spring", kor: "봄", ety: "땅속에서 풀이나 새싹이 툭 하고 튀어 오르는(spring) 계절.", cog: "spring공이 (용수철), offspring (자식, 자손)" },
-            { eng: "windy", kor: "바람이 많이 부는", ety: "wind(바람) + y(형용사 접미사). 바람이 가득 몰아치는 상태.", cog: "wind (바람), window (창문 - 바람의 눈)" },
-            { eng: "cloudy", kor: "흐린, 구름 낀", ety: "cloud(구름) + y(형용사 접미사). 하늘에 구름이 가득 메워진 날씨.", cog: "cloud (구름), cloudless (구름이 없는)" },
-            { eng: "cool", kor: "시원한: 멋진", ety: "온도가 낮아 산뜻하다는 의미에서 감각적이고 세련되었다는 의미로 확장.", cog: "coolness (선선함; 냉정)" },
-            { eng: "weather", kor: "날씨, 기상", ety: "하늘의 대기 상태를 나타내는 고대 게르만어권 어원에서 유래.", cog: "weatherproof (전천후의, 비바람에 견디는)" },
-            { eng: "snow", kor: "눈이 오다: 눈", ety: "하늘에서 떨어지는 하얀 결정체를 뜻하는 고대 독일어계 단어.", cog: "snowy (눈이 내리는, 눈으로 덮인)" },
-            { eng: "sunny", kor: "화창한", ety: "sun(태양) + ny(형용사 접미사). 햇살이 눈부시게 내리쬐는 상태.", cog: "sun (태양), sunlight (햇빛)" },
-            { eng: "hot", kor: "더운, 뜨거운", ety: "열기가 강한 상태를 뜻하는 고대 영어 hat에서 유래.", cog: "hot-headed (성급한, 격분하기 쉬운)" },
-            { eng: "summer", kor: "여름", ety: "일 년 중 가장 따뜻하고 해가 긴 계절을 의미하는 고대 게르만 어원.", cog: "summertime (여름철)" },
-            { eng: "warm", kor: "따뜻한", ety: "인도유럽조어 gwher(뜨겁다, 따뜻하다)에서 유래.", cog: "warmth (온기, 따뜻함)" },
-            { eng: "cold", kor: "추운, 차가운", ety: "열기를 잃고 얼어붙은 상태를 뜻하는 게르만 어원.", cog: "coldness (추위; 냉담함)" },
-            { eng: "rain", kor: "비가 오다: 비", ety: "하늘에서 물방울이 떨어지는 현상을 뜻하는 고대 영어 ren에서 유래.", cog: "rainy (비 오는), raincoat (우비)" },
-            { eng: "season", kor: "계절: 시기, 철", ety: "라틴어 satio(씨뿌리기, 파종)에서 유래. 농사지을 알맞은 시기나 계절.", cog: "seasonal (계절적인), seasoned (양념한; 숙련된)" },
-
-            // 워마중등베이직 38과 (21~40)
-            { eng: "enter", kor: "들어가다: 참가하다", ety: "라틴어 intra(안에)에서 유래. 어떤 공간이나 조직의 안으로 진입하다.", cog: "entrance (입구), entry (출입, 참가)" },
-            { eng: "president", kor: "대통령: 회장", ety: "pre(앞에) + sid(앉다) + ent. 회의나 조직의 맨 앞자리에 앉아 이끄는 사람.", cog: "preside (회의를 주재하다), presidency (대통령 임기)" },
-            { eng: "end", kor: "끝나다: 끝, 결말", ety: "구조물의 가장자리나 행동의 마지막 한계를 뜻하는 고대 영어.", cog: "endless (끝없는), ending (결말)" },
-            { eng: "building", kor: "건물", ety: "build(짓다, 세우다) + ing(명사 접미사). 흙이나 벽돌을 쌓아 올린 구조물.", cog: "build (짓다), builder (건축업자)" },
-            { eng: "luck", kor: "행운, 운", ety: "중세 네덜란드어 luc(기회, 좋은 운 운명)에서 유래.", cog: "lucky (운이 좋은), luckless (불운한)" },
-            { eng: "start", kor: "시작하다: 시작", ety: "원래 '툭 하고 튀어 오르다, 깜짝 놀라 움직이다'에서 행동의 개시로 발전.", cog: "starter (개시자; 출발선)" },
-            { eng: "law", kor: "법", ety: "고대 노르드어 lag(올바르게 놓인 것, 규정)에서 유래. 사회를 유지하는 기본 틀.", cog: "lawyer (변호사), lawful (법이 인정하는)" },
-            { eng: "program", kor: "(TV 등의) 프로그램", ety: "pro(미리, 앞에) + gram(적힌 것). 진행 순서나 내용을 미리 적어 놓은 표.", cog: "grammar (문법), telegram (전보)" },
-            { eng: "ask for", kor: "~을 요청[요구]하다", ety: "질문하다(ask)라는 동사가 대상을 향한 방향성(for)을 만나 요청의 뜻이 됨.", cog: "ask (묻다)" },
-            { eng: "history", kor: "역사", ety: "그리스어 historia(조사를 통해 얻은 지식이나 이야기)에서 유래.", cog: "historic (역사적으로 중요한), historian (역사학자)" },
-            { eng: "event", kor: "사건, 행사", ety: "e(밖으로) + vent(오다). 평범한 일상 밖으로 툭 불거져 나온 중요한 일.", cog: "prevent (예방하다), invent (발명하다)" },
-            { eng: "hometown", kor: "고향", ety: "home(집) + town(마을). 자기가 태어나서 자란 집이 있는 동네.", cog: "homestead (주택지)" },
-            { eng: "important", kor: "중요한", ety: "in(안으로) + port(나르다) + ant. 가치가 크기에 마음속으로 귀하게 실어 나를 만한.", cog: "import (수입하다), importance (중요성)" },
-            { eng: "traditional", kor: "전통적인", ety: "trans(너머로) + dare(주다) + itional. 세대를 넘어 다음 세대로 넘겨준 것.", cog: "tradition (전통), traitor (배신자 - 적에게 넘겨준 사람)" },
-            { eng: "these days", kor: "요즘", ety: "가까운 현재를 가리키는 지시어 이 날들(these days)에서 비롯된 부사구.", cog: "nowadays (요즘에는)" },
-            { eng: "information", kor: "정보, 자료", ety: "in(안에) + form(형태를 만들다) + ation. 상대방의 머릿속에 지식의 형태를 심어줌.", cog: "inform (알리다), informative (유익한)" },
-            { eng: "create", kor: "창조하다. 만들다", ety: "라틴어 creare(자라게 하다, 새로 만들어내다)에서 유래.", cog: "creative (창의적인), creature (생명체, 피조물)" },
-            { eng: "project", kor: "계획: 연구 과제", ety: "pro(앞으로) + ject(던지다). 구상한 아이디어나 계획을 미래를 향해 멀리 던짐.", cog: "reject (거절하다), inject (주입하다)" },
-            { eng: "citizen", kor: "시민, 국민", ety: "city(도시) + zen(거주자). 성벽으로 둘러싸인 도시에 권리를 가지고 사는 주민.", cog: "city (도시), citizenship (시민권)" },
-            { eng: "local", kor: "지역의, 현지의", ety: "라틴어 locus(장소) + al(형용사 접미사). 특정 제한된 구역이나 장소의.", cog: "locate (위치를 찾다), location (위치)" }
-        ];
-
-        let currentMode = 'all';
-        let testQuestions = [];
-        let currentQIdx = 0;
-        let score = 0;
-
-        window.onload = function() {
-            renderWordList();
-        };
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-
-            if (tabName === 'study') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('study-panel').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('test-panel').classList.add('active');
-                resetTest();
-            }
-        }
-
-        function setDisplayMode(mode) {
-            currentMode = mode;
-            document.querySelectorAll('.btn-ctrl').forEach(btn => btn.classList.remove('active'));
-            
-            const listContainer = document.getElementById('word-list-container');
-            listContainer.className = ''; 
-
-            if (mode === 'all') {
-                document.getElementById('btn-show-all').classList.add('active');
-            } else if (mode === 'eng') {
-                document.getElementById('btn-hide-eng').classList.add('active');
-                listContainer.classList.add('hide-eng');
-            } else if (mode === 'kor') {
-                document.getElementById('btn-hide-kor').classList.add('active');
-                listContainer.classList.add('hide-kor');
-            }
-        }
-
-        function renderWordList() {
-            const container = document.getElementById('word-list-container');
-            container.innerHTML = '';
-
-            vocabData.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'word-card';
+        <div class="flex-1 flex items-center justify-center p-6 w-full perspective-1000">
+            <div id="flashcard" class="w-full h-[65vh] max-w-sm relative transform-style-3d flip-card-inner cursor-pointer" onclick="flipCard()">
                 
-                const lessonTag = index < 20 ? "중등베이직 37" : "중등베이직 38"; // 37과와 38과 구분태그 적용
-                const displayNum = index < 20 ? (index + 1) : (index - 19);
+                <!-- 플래시카드 앞면 -->
+                <div class="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] backface-hidden flex flex-col justify-center items-center p-8 text-center border-b-8 border-green-500">
+                    <span id="cardGroup" class="absolute top-6 text-xs font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full border border-green-200">그룹명</span>
+                    <h2 id="cardWord" class="text-5xl font-black text-gray-800 mb-4 tracking-tight">Word</h2>
+                    <p class="text-gray-400 text-sm mt-6 font-medium animate-bounce"><i class="fa-solid fa-hand-pointer mr-2"></i>카드를 눌러 뒤집기</p>
+                </div>
 
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="word-num">${lessonTag} - No. ${displayNum}</span>
+                <!-- 플래시카드 뒷면 -->
+                <div class="absolute inset-0 w-full h-full bg-green-600 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] backface-hidden rotate-y-180 flex flex-col p-8 text-white overflow-y-auto border-b-8 border-green-800">
+                    <h2 id="cardWordBack" class="text-2xl font-bold mb-2 border-b border-green-400 pb-2">Word</h2>
+                    <p id="cardMeaning" class="text-2xl font-black mb-6 text-yellow-300">의미</p>
+                    
+                    <div class="bg-green-800 bg-opacity-40 rounded-xl p-4 mb-4 shadow-inner">
+                        <p class="text-xs text-green-200 mb-1.5 font-bold uppercase tracking-wider"><i class="fa-solid fa-lightbulb mr-1 text-yellow-300"></i> 어원 스토리</p>
+                        <p id="cardRoot" class="text-sm leading-relaxed text-gray-100">어원 설명</p>
                     </div>
-                    <div class="word-eng">${item.eng}</div>
-                    <div class="word-kor">${item.kor}</div>
-                    <div class="etymology-box">
-                        <strong>어원:</strong> ${item.ety}<br>
-                        <strong>동계어:</strong> ${item.cog}
+                    
+                    <div class="bg-green-800 bg-opacity-40 rounded-xl p-4 shadow-inner">
+                        <p class="text-xs text-green-200 mb-1.5 font-bold uppercase tracking-wider"><i class="fa-solid fa-link mr-1 text-blue-300"></i> 동계어 (Family)</p>
+                        <p id="cardCognates" class="text-sm font-medium text-gray-100">동계어 설명</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 좌우 네비게이션 버튼 -->
+        <div class="flex justify-center items-center space-x-8 px-6 pb-4">
+            <button onclick="prevCard()" class="w-16 h-16 rounded-full bg-gray-800 text-white flex justify-center items-center active:bg-gray-700 hover:bg-gray-700 transition transform active:scale-90 border border-gray-600 shadow-xl">
+                <i class="fa-solid fa-chevron-left text-2xl"></i>
+            </button>
+            <button onclick="nextCard()" class="w-16 h-16 rounded-full bg-green-500 text-white flex justify-center items-center active:bg-green-400 hover:bg-green-400 transition transform active:scale-90 shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+                <i class="fa-solid fa-chevron-right text-2xl"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Day 1, Day 2 완벽 분리 데이터베이스 (총 60개)
+    // '어원과 의미 확장의 스토리(Semantic Shift)'를 꼼꼼하게 작성했습니다.
+    const db = {
+        // ----------------- [ Day 1: 성격, 기질 (30단어) ] -----------------
+        1: [
+            // 그룹 1: 긍정과 신뢰의 태도 (-pos-, -fid-, -gen-)
+            { word: "positive", meaning: "긍정적인", root: "pos(놓다, 두다) + itive → 어떤 사실을 있는 그대로 확고하게 제자리에 '내려놓고' 인정하는 태도에서 '긍정적인'이라는 뜻이 되었습니다.", cognates: "position(위치), deposit(예금하다)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "confident", meaning: "자신만만한, 확신하는", root: "con(완전히) + fid(믿다) + ent → 내 능력이나 상황을 '완전히 믿는' 상태이므로, '자신만만하고 확신에 찬' 성격을 나타냅니다.", cognates: "fidelity(충실함), confide(털어놓다)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "generous", meaning: "관대한, (인심이) 후한", root: "gen(혈통, 가문) + erous → 옛날 뼈대 있는 명문 귀족(가문) 출신 사람들은 베풀 줄 안다는 생각에서 유래하여 '관대하고 후한'이라는 뜻이 생겼습니다.", cognates: "gentle(온화한), gene(유전자)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "optimistic", meaning: "낙관적인, 낙천적인", root: "optimus(최상의) + istic → 앞으로 일어날 일들이 모두 '가장 좋은(최상의)' 방향으로 흘러갈 것이라고 믿는 긍정적인 심리 상태입니다.", cognates: "optimal(최적의), optimum(최고의 상태)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "brave", meaning: "용감한", root: "라틴어 barbarus(야만적인)에서 유래 → 문명화되지 않은 거칠고 두려움 없는 모습에서 '용감하고 용맹한'이라는 긍정적 의미로 진화했습니다.", cognates: "barbarian(야만인)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "active", meaning: "활동적인, 적극적인", root: "act(행동하다) + ive → 가만히 머물러 있지 않고 스스로 끊임없이 움직이며 '행동으로 옮기는' 성향입니다.", cognates: "action(행동), actor(배우)", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            { word: "cheerful", meaning: "쾌활한, 명랑한", root: "cheer(얼굴 표정 → 환호) + ful(가득 찬) → 원래 cheer는 '얼굴 표정'을 뜻했는데, 얼굴에 기쁨이 '가득 차서' 환호하는 '명랑한' 상태가 되었습니다.", cognates: "cheer(환호), cheer up", group: "1. 긍정과 신뢰의 태도 (-pos-, -fid-)" },
+            
+            // 그룹 2: 지혜와 신중함 (-wis-, -caut-, -mod-)
+            { word: "wise", meaning: "지혜로운, 슬기로운", root: "고대 영어 wid(알다, 보다) → 많은 것을 직접 보고 경험하여 세상 이치를 깊이 '알고 있는' 상태에서 '지혜롭다'는 뜻이 나왔습니다.", cognates: "vision(시야), witness(목격자)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "calm", 실력: "차분한, 침착한", meaning: "차분한, 침착한", root: "그리스어 cauma(한낮의 열기) → 아주 더운 한낮에는 사람들이 모든 활동을 멈추고 그늘에서 쉬는 '고요한' 풍경에서 유래했습니다.", cognates: "calmness(고요함)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "modest", meaning: "겸손한, 신중한; 중도적인", root: "mod(척도, 기준) + est → 겉멋을 부리거나 도를 넘지 않고, 알맞은 '기준과 선'을 지킬 줄 아는 '겸손한' 태도입니다.", cognates: "moderate(적당한), modern(현대의)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "careful", meaning: "조심성 있는", root: "care(주의, 걱정) + ful(가득 찬) → 행동 하나하나에 '걱정과 주의'를 꽉 채워서 실수하지 않으려는 성격입니다.", cognates: "careless(부주의한)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "cautious", meaning: "조심스러운, 신중한, 조심하는", root: "caut(주의하다, 경계하다) + ious → 잠재적인 위험을 미리 살피고 한 발짝 물러서서 '경계하는' 매우 신중한 태도입니다.", cognates: "precaution(예방조치)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "honest", meaning: "정직한, 솔직한", root: "honor(명예) + est → 남을 속이거나 거짓말을 하지 않음으로써 스스로의 '명예'를 당당하게 지키는 사람의 특성입니다.", cognates: "honor(명예), honorable(명예로운)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "serious", meaning: "진지한, 진심의", root: "라틴어 serius(무거운) → 태도나 생각이 결코 가볍지 않고 묵직하여 얕은 장난이 없는 '진지한' 상태를 말합니다.", cognates: "gravity(중력 - 무거움과 연관된 개념)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+            { word: "character", meaning: "성격, 기질", root: "char(새기다) + acter → 돌이나 동전에 문양을 깊게 새겨 넣듯이, 사람의 내면에 쉽게 변하지 않도록 깊게 새겨진 고유한 '성격'을 뜻합니다.", cognates: "characteristic(특성)", group: "2. 지혜와 신중함 (-wis-, -caut-)" },
+
+            // 그룹 3: 부정적인 성향 (-neg-, -strict-, -cru-)
+            { word: "negative", meaning: "부정적인", root: "neg(부인하다, 거절하다) + ative → 남의 의견이나 주어진 상황에 대해 '아니다'라고 거부부터 하는 성향입니다.", cognates: "neglect(방치하다), deny(부인하다)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "strict", meaning: "엄한, 엄격한", root: "strict(팽팽하게 당기다) → 느슨하게 풀어주지 않고 규칙의 끈을 '팽팽하게 꽉 조여' 융통성을 주지 않는 '엄격함'입니다.", cognates: "stress(스트레스), restrict(제한하다)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "cruel", meaning: "잔인한, 무자비한", root: "crud(생피가 흐르는) + el → 피가 뚝뚝 떨어지는 날것을 보고도 눈 하나 깜짝하지 않는 무자비하고 '가혹한' 모습에서 유래했습니다.", cognates: "crude(가공되지 않은, 거친)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "mean", meaning: "못된, 심술궂은", root: "원래 '중간의' → '너무 흔하고 평범한' → '가치 없고 비천한'을 거쳐 남을 괴롭히는 '심술궂고 비열한' 성격으로 의미가 하락했습니다.", cognates: "meanwhile(그 동안에 - '중간'의 의미 유지)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "rude", meaning: "무례한, 예의 없는", root: "rud(다듬어지지 않은) → 교양이나 예절 교육을 받지 않아 마치 껍질을 벗기지 않은 거친 통나무처럼 '무례한' 상태입니다.", cognates: "crude(다듬어지지 않은), erudite(학식있는 - rud를 벗어난)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "selfish", meaning: "이기적인", root: "self(자기 자신) + ish(~같은) → 타인은 배려하지 않고 오직 자기 자신(self)의 이익만을 최우선으로 챙기는 성향입니다.", cognates: "selfless(이타적인)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "proud", meaning: "자랑스러워하는; 거만한, 잘난 체하는", root: "pro(앞으로) + ud(뛰어난) → 자신이 남들보다 뛰어나다고 생각하여 무리의 '맨 앞으로' 나서서 우쭐대는 성격입니다.", cognates: "pride(자부심)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "lazy", meaning: "게으른", root: "고대 프랑스어 lasche(느슨한) → 긴장감 없이 몸과 마음의 끈이 축 늘어지고 '느슨해져서' 움직이기 싫어하는 상태입니다.", cognates: "lax(느슨한), relax(휴식하다)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "evil", meaning: "나쁜, 사악한; 악", root: "고대 영어 yfel(한계를 넘은) → 인간이 지켜야 할 정상적인 도덕적 경계선을 '넘어서' 버린 끔찍한 '사악함'을 뜻합니다.", cognates: "over(넘어서 - 어원적 뿌리 공유)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+            { word: "foolish", meaning: "바보 같은, 어리석은", root: "follis(바람 빠진 가죽 주머니) → 머릿속에 든 것이 없이 공기 빠진 주머니처럼 '텅 비어있어' 어리석다는 비유적 표현입니다.", cognates: "fool(바보)", group: "3. 부정적 성향 (-neg-, -cru-)" },
+
+            // 그룹 4: 감정과 관계 형용사 (Phrasal & Social)
+            { word: "sensitive", meaning: "민감한, 예민한", root: "sens(느끼다) + itive → 외부의 작은 자극이나 남의 기분을 안테나처럼 아주 빠르고 예리하게 '느끼고 반응하는' 특성입니다.", cognates: "sense(감각), sentiment(감정)", group: "4. 감정과 관계 형성 (-sens-, -cur-)" },
+            { word: "curious", meaning: "호기심이 많은, 알고 싶어 하는", root: "cur(주의, 돌봄) + ious → 주변의 어떤 대상에게 강한 '주의'를 기울이고 마음을 써서 알아내고자 하는 성향입니다.", cognates: "care(주의), cure(치료하다)", group: "4. 감정과 관계 형성 (-sens-, -cur-)" },
+            { word: "friendly", meaning: "친한, 친절한; 호의적인", root: "friend(친구) + ly(부사/형용사형) → 처음 보는 사람에게도 마치 오래된 '친구'처럼 따뜻하고 가깝게 대하는 태도입니다.", cognates: "friendship(우정)", group: "4. 감정과 관계 형성 (-sens-, -cur-)" },
+            { word: "cheer up", meaning: "기운을 내다, ~을 격려하다", root: "cheer(환호하다) + up(위로) → 기분이 바닥으로 가라앉은 사람의 마음을 환호를 통해 '위로(up)' 끌어올려 주다.", cognates: "cheerful(쾌활한)", group: "4. 감정과 관계 형성 (-sens-, -cur-)" },
+            { word: "make fun of", meaning: "~을 놀리다, 비웃다", root: "make(만들다) + fun(장난) + of → 특정한 사람이나 대상을 콕 집어서(of), 그 사람을 내 웃음과 '장난거리(fun)로 만들어버리다'.", cognates: "funny(웃긴)", group: "4. 감정과 관계 형성 (-sens-, -cur-)" }
+        ],
+
+        // ----------------- [ Day 2: 외모, 신체 (30단어) ] -----------------
+        2: [
+            // 그룹 1: 매력과 아름다움 (-tract-, -beau-)
+            { word: "attractive", meaning: "매력적인", root: "ad(~쪽으로) + tract(끌다) + ive → 억지로 시키지 않아도 사람들의 시선과 마음을 강력하게 '자기 쪽으로 끌어당기는' 매력이 있는 상태.", cognates: "attract(끌어당기다), tractor(트랙터)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "charming", meaning: "매력적인, 멋진", root: "carmen(마법의 주문, 노래) → 요정이 부르는 마법의 노래처럼, 사람을 완전히 홀리고 푹 빠지게 만드는 치명적인 매력.", cognates: "charm(매력, 부적)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "handsome", meaning: "(남자가) 잘생긴", root: "hand(손) + some → 원래 '손에 쥐기 편한'에서 출발하여 '손재주가 좋은'을 거쳐, 사람의 외모나 태도가 '다루기 훌륭하고 잘생긴'으로 뜻이 발전함.", cognates: "hand(손), handy(유용한)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "beautiful", meaning: "아름다운", root: "beauty(아름다움) + ful(가득 찬) → 설명이 필요 없을 정도로 시각적인 아름다움(beauty)이 '가득 채워진' 상태.", cognates: "beautify(아름답게 하다)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "lovely", meaning: "사랑스러운, 아름다운", root: "love(사랑) + ly → 보는 순간 저절로 '사랑(love)'하는 마음이 솟아나게 만들 정도로 귀엽고 예쁜 모습.", cognates: "lover(연인)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "good-looking", meaning: "잘생긴", root: "good(좋은) + looking(보이는) → 겉으로 보았을 때 눈에 띄게 '좋게(good)' 보이는, 즉 훈훈하고 잘생긴 외모.", cognates: "look(보다)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "cute", meaning: "귀여운, 예쁜", root: "acute(날카로운)에서 a가 탈락함 → 원래 두뇌가 '날카롭고 영리한'을 뜻하다가, 영리한 아이의 모습처럼 '작고 앙증맞아 귀여운'으로 부드러워짐.", cognates: "acute(예리한)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+            { word: "pretty", meaning: "예쁜, 귀여운; 매우, 아주", root: "고대 영어 praettig(교활한) → 원래 사람을 속일 만큼 '솜씨가 좋은' 뜻이었으나, 정교하게 꾸민 모습이 '예쁜' 것으로 뜻이 긍정적으로 180도 바뀐 단어.", cognates: "prettily(예쁘게)", group: "1. 외모의 매력 (-tract-, -beau-)" },
+
+            // 그룹 2: 체격과 신체 조건 (-musc-, -fit-)
+            { word: "muscular", meaning: "근육질의, 건장한", root: "mus(쥐) + culus(작은) → 피부 아래에서 움직이는 근육의 모습이 마치 '작은 쥐(mouse)' 여러 마리가 꿈틀대고 뛰어다니는 것 같다고 해서 유래함.", cognates: "muscle(근육), mouse(쥐)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "fit", meaning: "건강한; 적합하다, 꼭 맞다", root: "원래 퍼즐 조각이 '딱 맞다'라는 뜻에서 신체의 모든 기능과 근육이 무리 없이 요구 조건에 '딱 맞게' 튼튼히 돌아가는 건강한 상태.", cognates: "fitness(건강, 체력)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "build", meaning: "체격; 짓다, 건축하다", root: "원래 건물을 '세우다, 짓다'의 뜻이나, 사람의 뼈대와 근육이 건물의 기둥처럼 탄탄하게 지어지고 형성된 '체격'을 뜻하게 됨.", cognates: "building(건물)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "slim", meaning: "호리호리한, 가냘픈, 날씬한", root: "네덜란드어에서 처음엔 '나쁜, 구부러진'을 뜻했다가 '지나치게 얇은'으로 변했고, 현대에 와서야 보기 좋게 '날씬한'이라는 긍정적 단어로 정착함.", cognates: "-", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "thin", meaning: "(몸이) 가는, 여윈; (머리카락) 숱이 적은", root: "라틴어 tenuis(얇게 팽팽히 늘어난) → 반죽을 얇게 펴듯 몸에 살이 찌지 않아 가죽과 뼈만 남아 '가늘고 얇아진' 모습.", cognates: "tension(긴장, 팽팽함)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "skinny", meaning: "깡마른, 바싹 여윈", root: "skin(피부) + y → 살집은 전혀 없이 뼈 위를 오직 얇은 '피부(skin)' 한 겹만이 덮고 있을 정도로 바싹 마른 상태.", cognates: "skin(피부)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "overweight", meaning: "과체중의, 너무 살찐", root: "over(초과하여) + weight(무게) → 몸의 뼈대가 감당할 수 있는 정상적인 무게(weight) 기준선을 훌쩍 '넘어선(over)' 상태.", cognates: "weight(무게), weigh(무게를 달다)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+            { word: "appearance", meaning: "외모", root: "ad(~에) + parere(보이다) + ance → 마음속이 아니라 내 몸 겉면으로 남들에게 '드러나 보이는(appear)' 전체적인 겉모습.", cognates: "appear(나타나다), transparent(투명한)", group: "2. 체격과 신체 조건 (-musc-, -fit-)" },
+
+            // 그룹 3: 얼굴 특징과 헤어스타일 (-beard-)
+            { word: "bald", meaning: "대머리의", root: "켈트어 bal(하얀 반점) → 머리카락이 모두 빠져서 두피가 반점처럼 '하얗게 둥그렇게 훤히 드러난' 상태를 묘사함.", cognates: "baldy(대머리인 사람)", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+            { word: "mustache", meaning: "코밑수염", root: "그리스어 mystax(윗입술) → 턱이 아니라 정확히 '윗입술(코 바로 밑)' 부분에만 길게 자라나는 콧수염.", cognates: "-", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+            { word: "beard", meaning: "턱수염", root: "라틴어 barba(수염) → 콧수염과 달리, 턱 아래와 양 뺨 주변을 덥수룩하게 뒤덮으며 자라나는 남자의 턱수염.", cognates: "barber(이발사 - 수염을 깎아주던 직업)", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+            { word: "sideburns", meaning: "구레나룻", 거: "구레나룻", root: "미국 남북전쟁의 장군 Ambrose Burnside의 귀 옆 털을 길게 기른 독특한 스타일에서, 그의 이름 앞뒤를 바꿔 'sideburns'란 단어가 탄생함.", cognates: "burn, side", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+            { word: "curly", meaning: "곱슬거리는", root: "curl(구부리다) + y → 머리카락이 일직선으로 뻗지 않고 스프링처럼 빙글빙글 '구부러지고 말려' 있는 모양.", cognates: "curl(돌돌 말다)", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+            { word: "dye", meaning: "염색하다", root: "고대 영어 deag(색깔) → 본래의 색을 감추고 머리카락이나 옷감에 인공적인 '색깔'을 덮어씌워 바꾸는 행위.", cognates: "dyer(염색공)", group: "3. 얼굴 특징과 헤어 (-beard-)" },
+
+            // 그룹 4: 나이와 평범한 특징들 (-plain-, -young-)
+            { word: "plain", meaning: "평범하게 생긴, 꾸밈없는", root: "planus(평평한) → 화려한 장식이나 튀는 특징이 튀어나와 있지 않고 '평평하고' 밋밋하여 지극히 평범한 외모.", cognates: "plane(비행기, 평면), explain(설명하다)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "ugly", meaning: "못생긴, 추한", root: "노르웨이어 ugg(두려움) + ly → 보면 눈살을 찌푸리거나 '공포심, 두려움'이 생길 정도로 미관상 흉측하고 나쁜 외모.", cognates: "uglesome(무서운)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "neat", meaning: "단정한, 깔끔한", root: "라틴어 nitere(빛나다) → 옷차림이나 외모에 먼지나 구김 하나 없이 반짝거릴 정도로 깨끗하게 정돈되어 '빛이 나는' 상태.", cognates: "net(그물 - 깨끗이 씻긴), neatness(단정함)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "young", meaning: "어린, 젊은", root: "고대 영어 geong(어린) → 나이가 어리고 체력적으로 생명력과 활력이 가장 넘쳐흐르는 인생의 초반부 시기.", cognates: "youth(젊음, 청춘)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "middle-aged", meaning: "중년의", root: "middle(중간) + age(나이) + d → 사람의 인생 전체를 놓고 보았을 때 딱 '중간' 시점의 나이대에 접어든 사람.", cognates: "age(나이)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "grow up", meaning: "성장하다, 자라다", root: "grow(자라다) + up(위로) → 아이의 키와 몸집이 아래가 아닌 '위쪽(up)'으로 커지면서 어른이 되어가는 신체적, 정신적 과정.", cognates: "grown-up(어른)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "image", meaning: "이미지, 상, 형태", root: "라틴어 imago(모방, 복사) → 눈앞에 보이지 않아도 사람의 머릿속에 '복사되어' 남아있는 어떤 사람의 겉모습이나 형태.", cognates: "imagine(상상하다), imitate(모방하다)", group: "4. 연령과 특징 (-plain-, -young-)" },
+            { word: "both A and B", meaning: "A와 B 둘 다", root: "숙어 표현. 신체적 특징이나 외모를 묘사할 때 두 가지 긍정적 혹은 부정적 특성을 동시에 가지고 있음을 강조함.", cognates: "both(둘 다)", group: "4. 연령과 특징 (-plain-, -young-)" }
+        ]
+    };
+
+    let currentLesson = 1; // 기본은 Day 1
+    let currentCardIndex = 0;
+    let isFlipped = false;
+    let currentFlatWordList = [];
+
+    // --- 단원(탭) 변경 로직 ---
+    function setLesson(lessonNumber) {
+        currentLesson = lessonNumber;
+        currentCardIndex = 0; 
+
+        // 탭 UI 업데이트 (그린 톤)
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            btn.classList.replace('text-green-600', 'text-gray-500');
+            btn.classList.replace('border-green-600', 'border-transparent');
+            btn.classList.remove('bg-green-50', 'bg-green-100', 'bg-green-50', 'bg-green-100', 'bg-green-100', 'bg-green-100', 'bg-green-100', 'bg-green-100', 'bg-green-100', 'bg-green-100', 'text-green-700', 'border-green-200'); // Clean up any old tailwind
+            btn.style.backgroundColor = 'transparent';
+            btn.style.color = '#6b7280';
+            btn.style.borderBottomColor = 'transparent';
+            btn.style.fontWeight = '500';
+        });
+        
+        const activeTab = document.getElementById(`tab-${lessonNumber}`);
+        activeTab.style.color = '#16a34a'; // text-green-600
+        activeTab.style.borderBottomColor = '#16a34a';
+        activeTab.style.fontWeight = '700';
+        activeTab.style.backgroundColor = '#dcfce7'; // bg-green-100
+
+        renderList();
+    }
+
+    // --- 초기화 및 리스트 렌더링 ---
+    function renderList() {
+        const listView = document.getElementById('listView');
+        let htmlContent = '';
+        
+        // 현재 Day의 데이터 가져오기
+        const words = db[currentLesson];
+        currentFlatWordList = words; 
+
+        // 그룹별로 데이터 묶기
+        const groupedData = words.reduce((acc, word) => {
+            if (!acc[word.group]) acc[word.group] = [];
+            acc[word.group].push(word);
+            return acc;
+        }, {});
+
+        // 🎯 고유 ID를 위한 카운터 (아코디언 버그 완벽 방지)
+        let wordIdCounter = 0;
+
+        for (const [groupName, groupWords] of Object.entries(groupedData)) {
+            htmlContent += `
+                <div class="mb-8">
+                    <h2 class="text-sm font-extrabold text-green-700 uppercase tracking-wide mb-3 px-1 border-l-4 border-green-500 pl-2">
+                        ${groupName}
+                    </h2>
+                    <div class="space-y-3">
+            `;
+            
+            groupWords.forEach((item) => {
+                const id = `word-${currentLesson}-${wordIdCounter++}`;
+                htmlContent += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300">
+                        <div class="p-4 flex justify-between items-center cursor-pointer active:bg-gray-50" onclick="toggleAccordion('${id}')">
+                            <div>
+                                <h3 class="text-[1.15rem] font-bold text-gray-800">${item.word}</h3>
+                                <p class="text-sm font-medium text-gray-500 mt-0.5">${item.meaning}</p>
+                            </div>
+                            <div class="w-8 h-8 flex justify-center items-center rounded-full bg-green-50 text-green-500">
+                                <i id="icon-${id}" class="fa-solid fa-chevron-down transition-transform duration-300 text-sm"></i>
+                            </div>
+                        </div>
+                        
+                        <div id="content-${id}" class="accordion-content bg-gray-50 px-5 border-t border-gray-100">
+                            <div class="mb-4 mt-2">
+                                <span class="inline-flex items-center bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-md font-bold mb-2 shadow-sm">
+                                    <i class="fa-solid fa-book-open mr-1.5"></i>어원의 비밀
+                                </span>
+                                <p class="text-[0.9rem] text-gray-700 leading-relaxed font-medium">${item.root}</p>
+                            </div>
+                            <div class="pb-3">
+                                <span class="inline-flex items-center bg-blue-50 text-blue-700 border border-blue-100 text-xs px-2.5 py-1 rounded-md font-bold mb-2">
+                                    <i class="fa-solid fa-link mr-1.5"></i>동계어 (Family)
+                                </span>
+                                <p class="text-sm text-gray-600 font-semibold">${item.cognates}</p>
+                            </div>
+                        </div>
                     </div>
                 `;
-                container.appendChild(card);
             });
+            htmlContent += `</div></div>`;
         }
+        listView.innerHTML = htmlContent;
+        updateFlashcard();
+    }
 
-        function startTest() {
-            document.getElementById('test-setup-box').style.display = 'none';
-            document.getElementById('test-main-box').style.display = 'block';
-            document.getElementById('test-score-box').style.display = 'none';
-            
-            const shuffled = [...vocabData].sort(() => 0.5 - Math.random());
-            testQuestions = shuffled.slice(0, 10);
-            
-            currentQIdx = 0;
-            score = 0;
-            showQuestion();
-        }
-
-        function showQuestion() {
-            if (currentQIdx >= 10) {
-                endTest();
-                return;
-            }
-
-            document.getElementById('curr-q-idx').innerText = currentQIdx + 1;
-            const currentQ = testQuestions[currentQIdx];
-            
-            document.getElementById('test-question-text').innerText = currentQ.eng;
-
-            let wrongOptions = vocabData
-                .filter(item => item.eng !== currentQ.eng)
-                .sort(() => 0.5 - Math.random())
-                .slice(0, 3)
-                .map(item => item.kor);
-
-            let options = [currentQ.kor, ...wrongOptions].sort(() => 0.5 - Math.random());
-
-            const optionsContainer = document.getElementById('test-options');
-            optionsContainer.innerHTML = '';
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = opt;
-                btn.onclick = (e) => checkAnswer(e.target, opt, currentQ.kor);
-                optionsContainer.appendChild(btn);
-            });
-        }
-
-        function checkAnswer(clickedButton, selected, correct) {
-            const allButtons = document.querySelectorAll('.option-btn');
-            
-            // 점수 오염 방지: 이벤트 수신 즉시 비활성화 처리
-            allButtons.forEach(btn => {
-                btn.disabled = true;
-                if (btn.innerText === correct) {
-                    btn.classList.add('correct');
+    // --- 아코디언 토글 애니메이션 로직 ---
+    function toggleAccordion(id) {
+        const content = document.getElementById(`content-${id}`);
+        const icon = document.getElementById(`icon-${id}`);
+        
+        if (content.classList.contains('open')) {
+            content.classList.remove('open');
+            icon.classList.remove('rotate-180');
+        } else {
+            // 다른 열린 아코디언 닫기 (옵션)
+            document.querySelectorAll('.accordion-content.open').forEach(el => {
+                if(el.id !== `content-${id}`) {
+                    el.classList.remove('open');
+                    const otherIcon = document.getElementById(el.id.replace('content-', 'icon-'));
+                    if(otherIcon) otherIcon.classList.remove('rotate-180');
                 }
             });
 
-            if (selected === correct) {
-                score++;
-            } else {
-                clickedButton.classList.add('wrong');
-            }
-
-            // 시각 피드백 확보 후 1초 대기 후 전환
-            setTimeout(() => {
-                currentQIdx++;
-                showQuestion();
-            }, 1000);
+            content.classList.add('open');
+            icon.classList.add('rotate-180');
         }
+    }
 
-        function endTest() {
-            document.getElementById('test-main-box').style.display = 'none';
-            document.getElementById('test-score-box').style.display = 'block';
-            
-            document.getElementById('final-score').innerText = `${score} / 10`;
-            
-            let comment = "";
-            if (score === 10) comment = "👑 대단합니다! 완벽하게 마스터하셨네요!";
-            else if (score >= 8) comment = "👍 우수한 성적입니다! 조금만 더 하면 만점!";
-            else if (score >= 5) comment = "✍️ 아는 단어가 많지만, 헷갈리는 어원 위주로 복습해보세요.";
-            else comment = "📚 단어장을 켜고 가리기 기능을 활용하여 재학습을 권장합니다.";
-            
-            document.getElementById('score-comment').innerText = comment;
+    // --- 플래시카드 토글 모드 ---
+    function toggleMode() {
+        const flashcardView = document.getElementById('flashcardView');
+        const modeBtn = document.getElementById('modeToggleBtn');
+        
+        if (flashcardView.classList.contains('hidden')) {
+            flashcardView.classList.remove('hidden');
+            flashcardView.classList.add('flex');
+            modeBtn.innerHTML = '<i class="fa-solid fa-list mr-1"></i> 목록보기';
+            updateFlashcard();
+        } else {
+            flashcardView.classList.add('hidden');
+            flashcardView.classList.remove('flex');
+            modeBtn.innerHTML = '<i class="fa-solid fa-layer-group mr-1"></i> 카드모드';
         }
+    }
 
-        function resetTest() {
-            document.getElementById('test-setup-box').style.display = 'block';
-            document.getElementById('test-main-box').style.display = 'none';
-            document.getElementById('test-score-box').style.display = 'none';
+    // --- 플래시카드 업데이트 ---
+    function updateFlashcard() {
+        const item = currentFlatWordList[currentCardIndex];
+        document.getElementById('cardGroup').innerText = item.group;
+        document.getElementById('cardWord').innerText = item.word;
+        document.getElementById('cardWordBack').innerText = item.word;
+        document.getElementById('cardMeaning').innerText = item.meaning;
+        document.getElementById('cardRoot').innerText = item.root;
+        document.getElementById('cardCognates').innerText = item.cognates;
+        
+        document.getElementById('flashcardCounter').innerText = `${currentCardIndex + 1} / ${currentFlatWordList.length}`;
+        
+        // 카드 넘길 때 항상 앞면으로 리셋
+        if(isFlipped) {
+            document.getElementById('flashcard').classList.remove('rotate-y-180');
+            isFlipped = false;
         }
-    </script>
+    }
+
+    // --- 카드 뒤집기 ---
+    function flipCard() {
+        const card = document.getElementById('flashcard');
+        isFlipped = !isFlipped;
+        if (isFlipped) {
+            card.classList.add('rotate-y-180');
+        } else {
+            card.classList.remove('rotate-y-180');
+        }
+    }
+
+    function prevCard() {
+        if (currentCardIndex > 0) {
+            currentCardIndex--;
+        } else {
+            currentCardIndex = currentFlatWordList.length - 1; // 처음이면 마지막으로 루프
+        }
+        updateFlashcard();
+    }
+
+    function nextCard() {
+        if (currentCardIndex < currentFlatWordList.length - 1) {
+            currentCardIndex++;
+        } else {
+            currentCardIndex = 0; // 마지막이면 처음으로 루프
+        }
+        updateFlashcard();
+    }
+
+    // 초기 실행
+    window.onload = () => {
+        setLesson(1); // 앱 켜면 Day 1 기본 선택
+    };
+</script>
 </body>
 </html>
