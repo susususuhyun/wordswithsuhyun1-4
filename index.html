@@ -3,365 +3,555 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>워마 중등실력 메타인지 단어장 (Day 4 & 5)</title>
+    <title>종합 영단어 포털 (SPA)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        /* 기본 폰트 및 앱 스타일 */
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; overflow-x: hidden; }
-        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; overflow: hidden; }
+        
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
 
-        /* 부드러운 아코디언 애니메이션 */
-        .accordion-content { transition: max-height 0.35s ease-in-out, padding 0.35s ease-in-out, opacity 0.35s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
+        /* 아코디언 애니메이션 */
+        .accordion-content { transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
         .accordion-content.open { max-height: 400px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; }
         
-        /* 3D 플래시카드 애니메이션 설정 */
+        /* 플래시카드 3D 애니메이션 */
         .perspective-1000 { perspective: 1000px; }
         .transform-style-3d { transform-style: preserve-3d; }
         .backface-hidden { backface-visibility: hidden; }
         .rotate-y-180 { transform: rotateY(180deg); }
         .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
 
-        /* 탭 상태 스타일 */
-        .tab-btn.active { color: #f43f5e; border-bottom-color: #f43f5e; font-weight: 700; background-color: #fff1f2; }
+        /* 모바일 사이드바 트랜지션 */
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        @media (max-width: 768px) {
+            #sidebar { transform: translateX(-100%); }
+            #sidebar.open { transform: translateX(0); }
+        }
 
-        /* 모바일 앱 뷰포트 고정 */
-        .app-container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.08); }
+        /* 활성화된 사이드바 메뉴 스타일 */
+        .menu-item.active { background-color: #eff6ff; color: #3b82f6; border-right: 4px solid #3b82f6; font-weight: 700; }
     </style>
 </head>
-<body>
+<body class="flex h-screen w-full relative">
 
-<div class="app-container flex flex-col h-screen overflow-hidden">
-    
-    <header class="bg-slate-900 text-rose-400 p-4 sticky top-0 z-20 flex justify-between items-center shadow-md">
-        <div>
-            <h1 class="text-xl font-extrabold tracking-wide"><i class="fa-solid fa-shirt mr-2"></i>메타인지 단어장</h1>
-            <p class="text-xs text-slate-300 mt-1">중등실력 <span class="text-white font-bold">Day 4 (직업) & Day 5 (패션)</span></p>
+    <!-- 모바일 환경을 위한 사이드바 오버레이 배경 -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <!-- 왼쪽 사이드바 (내비게이션) -->
+    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col h-full shadow-2xl md:shadow-none flex-shrink-0">
+        <!-- 사이드바 헤더 -->
+        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <h1 class="text-lg font-black text-slate-800 tracking-tight"><i class="fa-solid fa-graduation-cap text-blue-600 mr-2"></i>통합 단어장</h1>
+            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark text-xl"></i></button>
         </div>
-        <button onclick="toggleMode()" id="modeToggleBtn" class="bg-rose-500 text-white px-4 py-1.5 rounded-full text-sm font-bold shadow-md hover:bg-rose-600 transition">
-            <i class="fa-solid fa-layer-group mr-1"></i> 카드모드
-        </button>
-    </header>
-
-    <!-- 탭 내비게이션 -->
-    <div class="flex bg-white shadow-sm sticky top-[72px] z-10 border-b border-slate-200">
-        <button id="tab-4" onclick="setLesson(4)" class="tab-btn active flex-1 py-3 text-sm text-slate-500 border-b-2 border-transparent transition duration-200"><i class="fa-solid fa-user-tie mr-1"></i> Day 4 (직업)</button>
-        <button id="tab-5" onclick="setLesson(5)" class="tab-btn flex-1 py-3 text-sm text-slate-500 border-b-2 border-transparent transition duration-200"><i class="fa-solid fa-bag-shopping mr-1"></i> Day 5 (패션)</button>
-    </div>
-
-    <!-- 메인 리스트 뷰 -->
-    <main id="listView" class="flex-1 overflow-y-auto p-4 space-y-5 pb-24 bg-slate-50">
-        <!-- JavaScript로 렌더링 -->
-    </main>
-
-    <!-- 플래시카드 뷰 (기본 숨김) -->
-    <div id="flashcardView" class="hidden absolute inset-0 bg-slate-900/95 z-30 flex-col pb-10 backdrop-blur-sm">
-        <div class="flex justify-between items-center p-5 text-white">
-            <span id="flashcardCounter" class="text-sm font-bold bg-slate-800 px-4 py-1.5 rounded-full border border-slate-700 text-rose-400 shadow-inner">1 / 30</span>
-            <button onclick="toggleMode()" class="text-slate-400 hover:text-rose-400 transition transform hover:rotate-90"><i class="fa-solid fa-xmark text-3xl"></i></button>
+        
+        <!-- 사이드바 메뉴 리스트 (JS로 동적 렌더링) -->
+        <div class="flex-1 overflow-y-auto py-4" id="menuContainer">
+            <!-- Menu items will be generated here -->
         </div>
+    </aside>
 
-        <div class="flex-1 flex items-center justify-center p-6 w-full perspective-1000">
-            <div id="flashcard" class="w-full h-[65vh] max-w-sm relative transform-style-3d flip-card-inner cursor-pointer" onclick="flipCard()">
-                
-                <!-- 앞면 -->
-                <div class="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_15px_40px_rgba(0,0,0,0.4)] backface-hidden flex flex-col justify-center items-center p-8 text-center border-2 border-slate-100">
-                    <span id="cardGroup" class="absolute top-6 text-[0.7rem] font-bold text-rose-600 bg-rose-100 px-3 py-1 rounded-full tracking-wider">그룹</span>
-                    <h2 id="cardWord" class="text-4xl font-black text-slate-800 mb-4 tracking-tight break-words">Word</h2>
-                    <p class="text-slate-400 text-sm mt-8 font-semibold animate-pulse"><i class="fa-solid fa-rotate mr-2"></i>카드를 뒤집어 해설 확인</p>
+    <!-- 오른쪽 메인 콘텐츠 영역 -->
+    <main class="flex-1 flex flex-col h-full relative min-w-0">
+        
+        <!-- 상단 앱 헤더 -->
+        <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md z-20">
+            <div class="flex items-center">
+                <!-- 햄버거 메뉴 버튼 (모바일에서만 보임) -->
+                <button onclick="toggleSidebar()" class="md:hidden mr-4 text-white hover:text-blue-200 transition">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <!-- 현재 선택된 교재와 단원 이름 -->
+                    <h2 id="currentLessonTitle" class="text-lg font-bold">학습할 단원을 선택하세요</h2>
+                    <p id="currentBookTitle" class="text-xs text-blue-200 mt-0.5">왼쪽 메뉴를 열어주세요</p>
                 </div>
+            </div>
+            <!-- 카드 모드 전환 버튼 (기본은 숨김 처리) -->
+            <button onclick="toggleFlashcardMode()" id="modeToggleBtn" class="bg-blue-800 bg-opacity-50 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-blue-700 transition hidden">
+                <i class="fa-solid fa-clone mr-1"></i> 카드모드
+            </button>
+        </header>
 
-                <!-- 뒷면 -->
-                <div class="absolute inset-0 w-full h-full bg-slate-800 rounded-3xl shadow-[0_15px_40px_rgba(244,63,94,0.3)] backface-hidden rotate-y-180 flex flex-col p-6 text-slate-200 overflow-y-auto border border-rose-500">
-                    <h2 id="cardWordBack" class="text-2xl font-bold mb-2 border-b border-slate-600 pb-2 text-rose-400">Word</h2>
-                    <p id="cardMeaning" class="text-xl font-black mb-5 text-white">의미</p>
-                    
-                    <div class="bg-slate-900/60 rounded-xl p-4 mb-4 shadow-inner border border-slate-700">
-                        <p class="text-[0.75rem] text-rose-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-solid fa-lightbulb mr-1"></i> 메타인지 어원 스토리</p>
-                        <p id="cardRoot" class="text-[0.9rem] leading-relaxed text-slate-300 font-medium break-keep">어원 설명</p>
-                    </div>
-                    
-                    <div class="bg-slate-900/60 rounded-xl p-4 shadow-inner border border-slate-700">
-                        <p class="text-[0.75rem] text-slate-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-solid fa-link mr-1"></i> 패밀리 단어 (Cognates)</p>
-                        <p id="cardCognates" class="text-sm font-medium text-slate-400">동계어 설명</p>
-                    </div>
-                </div>
+        <!-- 리스트 뷰 영역 (메인 화면) -->
+        <div id="listView" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 space-y-4 pb-24">
+            <!-- 초기 안내 화면 -->
+            <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                <i class="fa-solid fa-book-open text-6xl mb-4 text-slate-200"></i>
+                <p class="font-medium text-lg">왼쪽 메뉴에서 학습할 단원을 선택해주세요.</p>
             </div>
         </div>
 
-        <!-- 하단 네비게이션 버튼 -->
-        <div class="flex justify-center items-center space-x-8 px-6 pb-4">
-            <button onclick="prevCard()" class="w-16 h-16 rounded-full bg-slate-800 text-slate-300 flex justify-center items-center active:bg-slate-700 hover:bg-slate-700 transition shadow-lg border border-slate-600 hover:text-rose-400">
-                <i class="fa-solid fa-chevron-left text-2xl"></i>
-            </button>
-            <button onclick="nextCard()" class="w-16 h-16 rounded-full bg-rose-500 text-white flex justify-center items-center active:bg-rose-600 hover:bg-rose-400 transition shadow-[0_0_20px_rgba(244,63,94,0.4)] font-bold">
-                <i class="fa-solid fa-chevron-right text-2xl"></i>
-            </button>
-        </div>
-    </div>
-</div>
+        <!-- 플래시카드 뷰 영역 (기본 숨김) -->
+        <div id="flashcardView" class="hidden absolute inset-0 bg-slate-900 bg-opacity-95 z-30 flex-col pb-10 pt-16">
+            <!-- 플래시카드 상단 헤더 -->
+            <div class="flex justify-between items-center px-6 pb-4 text-white">
+                <span id="flashcardCounter" class="text-sm font-bold bg-slate-800 px-4 py-1.5 rounded-full border border-slate-600 text-blue-300 shadow-inner">0 / 0</span>
+                <button onclick="toggleFlashcardMode()" class="text-slate-400 hover:text-white transition transform hover:rotate-90"><i class="fa-solid fa-xmark text-3xl"></i></button>
+            </div>
 
-<script>
-    const db = {
-        // ----------------- [ Day 4: 직업/진로 30단어 ] -----------------
-        4: [
-            // 그룹 1: 법, 정치, 공공
-            { word: "president", meaning: "대통령", root: "pre(앞에) + sidere(앉다) → 무리의 맨 앞자리에 앉아 국가를 주재하는 최고 책임자입니다.", cognates: "preside(주재하다), resident(거주자)", group: "1. 법, 정치, 공공" },
-            { word: "lawyer", meaning: "변호사", root: "law(법) + yer(사람) → 고대 노르드어 lag(바탕에 깔린 것)에서 유래하여 사회의 바탕인 법을 다루는 사람입니다.", cognates: "law(법), lawful(합법적인)", group: "1. 법, 정치, 공공" },
-            { word: "judge", meaning: "판사, 심사원; 판단하다", root: "jus(법, 올바름) + dicere(말하다) → 법정에서 무엇이 법이고 올바른지 최종적으로 '말해주는' 사람입니다.", cognates: "justice(정의), dictate(구술하다)", group: "1. 법, 정치, 공공" },
-            { word: "officer", meaning: "공무원, 관리", root: "opus(일) + facere(하다) → 사적인 일이 아니라 국가나 기관의 공적인 임무(office)를 수행하는 사람입니다.", cognates: "office(사무실), official(공식적인)", group: "1. 법, 정치, 공공" },
-            { word: "detective", meaning: "탐정", root: "de(벗기다) + tect(덮다) → 범죄자가 숨기려고 '덮어둔' 진실을 파헤쳐 '벗겨내는' 사람입니다.", cognates: "detect(발견하다), protect(보호하다)", group: "1. 법, 정치, 공공" },
-            { word: "soldier", meaning: "군인", root: "solidus(로마 금화) → 로마 시대에 소금이나 땅 대신 직접 '금화'를 월급으로 받고 일하던 용병에서 유래했습니다.", cognates: "solid(단단한 - 금화의 성질)", group: "1. 법, 정치, 공공" },
-            { word: "security guard", meaning: "경호원, 경비원", root: "se(없는) + cura(걱정) + guard(지키다) → 고객이 '걱정이 없도록' 지켜주는 사람입니다.", cognates: "secure(안전한), curious(호기심 있는)", group: "1. 법, 정치, 공공" },
-            
-            // 그룹 2: 과학, 기술, 공학
-            { word: "scientist", meaning: "과학자", root: "scire(알다) + ist(사람) → 자연과 우주가 어떻게 돌아가는지 그 이치를 '아는' 사람입니다.", cognates: "science(과학), conscience(양심)", group: "2. 과학, 기술, 공학" },
-            { word: "astronaut", meaning: "우주비행사", root: "astron(별) + nautes(선원) → 바다가 아니라 우주의 '별' 사이를 항해하는 특별한 선원입니다.", cognates: "astronomy(천문학), navy(해군)", group: "2. 과학, 기술, 공학" },
-            { word: "engineer", meaning: "기사, 기술자", root: "ingenium(타고난 재능, 발명) + eer → 고대에 공성 무기나 기계를 다루는 '천재적인 재능'을 가진 사람을 뜻했습니다.", cognates: "engine(엔진), genius(천재)", group: "2. 과학, 기술, 공학" },
-            { word: "mechanic", meaning: "정비공", root: "mechos(기계, 수단) + ic → 자동차나 기계가 작동하는 원리와 구조를 다룰 줄 아는 기술자입니다.", cognates: "machine(기계), mechanism(기계 장치)", group: "2. 과학, 기술, 공학" },
-            { word: "architect", meaning: "건축가", root: "archi(최고의) + tekton(목수) → 건물을 지을 때 일하는 모든 기술자들을 지휘하는 '수석 목수'입니다.", cognates: "archangel(대천사), technology(기술)", group: "2. 과학, 기술, 공학" },
-            { word: "carpenter", meaning: "목수", root: "carpentum(마차) → 로마 시대에 나무를 깎아 이륜마차를 만들던 장인에서 유래하여 나무를 다루는 사람이 되었습니다.", cognates: "carpet(카펫)", group: "2. 과학, 기술, 공학" },
-            { word: "dentist", meaning: "치과의사", root: "dens(치아) + ist(사람) → 인간의 '치아'와 관련된 의학적 지식을 다루는 전문가입니다.", cognates: "dental(치과의), indent(들여쓰기 하다)", group: "2. 과학, 기술, 공학" },
+            <!-- 카드 본체 -->
+            <div class="flex-1 flex items-center justify-center p-6 w-full perspective-1000">
+                <div id="flashcard" class="w-full h-[65vh] max-w-sm relative transform-style-3d flip-card-inner cursor-pointer" onclick="flipCard()">
+                    
+                    <!-- 앞면 (단어) -->
+                    <div class="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backface-hidden flex flex-col justify-center items-center p-8 text-center border-b-8 border-blue-500">
+                        <span id="cardGroup" class="absolute top-6 text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">그룹</span>
+                        <h2 id="cardWord" class="text-4xl font-black text-slate-800 mb-4 tracking-tight break-words">Word</h2>
+                        <p class="text-slate-400 text-sm mt-8 font-semibold animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>탭하여 뜻 확인</p>
+                    </div>
 
-            // 그룹 3: 기록, 교육, 언어
-            { word: "professor", meaning: "교수", root: "pro(앞에서) + fateri(말하다) → 학생들 '앞에서' 자신의 학문과 사상을 공개적으로 '선언하며' 가르치는 사람입니다.", cognates: "profess(공언하다), confess(고백하다)", group: "3. 기록, 교육, 언어" },
-            { word: "novelist", meaning: "소설가", root: "novus(새로운) + ist(사람) → 기존의 역사적 사실이 아닌, 상상력으로 만들어낸 '새로운' 이야기를 쓰는 사람입니다.", cognates: "novel(소설, 새로운), renovate(개조하다)", group: "3. 기록, 교육, 언어" },
-            { word: "announcer", meaning: "방송 진행자, 아나운서", root: "ad(~에게) + nuntiare(전하다) → 마이크를 통해 많은 사람들에게 소식이나 정보를 '전달해 주는' 사람입니다.", cognates: "announce(발표하다), pronounce(발음하다)", group: "3. 기록, 교육, 언어" },
-            { word: "reporter", meaning: "기자, 통신원", root: "re(다시) + portare(나르다) → 사건 현장에서 벌어진 일을 취재하여 신문이나 방송을 통해 '다시 실어 나르는' 사람입니다.", cognates: "report(보고하다), transport(수송하다)", group: "3. 기록, 교육, 언어" },
-            { word: "secretary", meaning: "비서", root: "secret(비밀) + ary(사람) → 예전에 왕이나 귀족의 가장 중요한 '비밀 문서'를 관리하던 고위직에서 유래했습니다.", cognates: "secret(비밀)", group: "3. 기록, 교육, 언어" },
-            { word: "accountant", meaning: "회계사", root: "ad(~에) + computare(계산하다) → 장부상에 돈이 들어오고 나가는 것을 정확히 '계산하는' 사람입니다.", cognates: "account(계좌, 설명), computer(컴퓨터)", group: "3. 기록, 교육, 언어" },
-
-            // 그룹 4: 예술, 상업, 일상
-            { word: "photographer", meaning: "사진사, 사진작가", root: "phos(빛) + graph(그리다) + er → 붓과 물감이 아니라 카메라로 들어오는 '빛'을 이용해 그림을 그리는 예술가입니다.", cognates: "photo(사진), paragraph(단락)", group: "4. 예술, 상업, 일상" },
-            { word: "illustrator", meaning: "삽화가", root: "in(안에) + lustrare(빛나게 하다) → 글만 있어서 어두운 책 속에 그림을 그려 내용을 환하게 '빛을 비추는' 사람입니다.", cognates: "illustrate(설명하다), illusion(환상)", group: "4. 예술, 상업, 일상" },
-            { word: "hairdresser", meaning: "미용사", root: "hair(머리카락) + dress(다듬다) → 사람의 머리카락을 아름다운 옷을 입히듯 보기 좋게 '다듬는' 사람입니다.", cognates: "dress(옷을 입히다)", group: "4. 예술, 상업, 일상" },
-            { word: "businessman", meaning: "사업가", root: "busy(바쁜) + ness + man → 이윤을 창출하기 위해 회사 일로 항상 '바쁘게' 움직이는 사람입니다.", cognates: "busy(바쁜), business(사업)", group: "4. 예술, 상업, 일상" },
-            { word: "salesperson", meaning: "판매원", root: "sale(판매) + person(사람) → 고객을 응대하고 물건을 '파는(sell)' 역할을 맡은 사람입니다.", cognates: "sell(팔다), sale(판매)", group: "4. 예술, 상업, 일상" },
-            { word: "baker", meaning: "제빵사", root: "bacan(굽다) + er(사람) → 고대 영어에서 유래하여 오븐에서 밀가루 반죽을 '구워내는' 사람을 뜻합니다.", cognates: "bake(굽다), bakery(빵집)", group: "4. 예술, 상업, 일상" },
-            { word: "fisherman", meaning: "어부", root: "fish(물고기) + er + man → 강이나 바다에서 그물이나 낚시로 '물고기를 잡는' 사람입니다.", cognates: "fish(물고기), fishery(어업)", group: "4. 예술, 상업, 일상" },
-            { word: "gardener", meaning: "정원사", root: "garden(정원) + er → garden은 원래 짐승이 못 들어오게 '울타리를 친 곳'이었으며, 이곳에 식물을 가꾸는 사람입니다.", cognates: "guard(지키다)", group: "4. 예술, 상업, 일상" },
-
-            // 그룹 5: 구동사 (직업/관심)
-            { word: "be good at", meaning: "~에 능숙하다, ~을 잘하다", root: "at(~지점에) → 전치사 at은 특정 지점을 콕 짚습니다. 여러 분야 중 특정 분야를 '콕 짚어' 잘한다는 뜻입니다.", cognates: "at(~에), good(좋은)", group: "5. 구동사 (상태/관심)" },
-            { word: "be[become] interested in", meaning: "~에 관심이[흥미가] 있다", root: "inter(사이에) + esse(있다) → 어떤 대상 '사이에 함께 있고' 싶을 정도로 마음이 끌리는 상태입니다.", cognates: "interest(관심), essence(본질)", group: "5. 구동사 (상태/관심)" }
-        ],
-
-        // ----------------- [ Day 5: 옷/패션/잡화 30단어 ] -----------------
-        5: [
-            // 그룹 1: 겉옷과 정장
-            { word: "jacket", meaning: "재킷, 상의, 웃옷", root: "프랑스 농부들의 흔한 이름 '자크(Jacques)'에서 유래! 평범한 사람들이 일할 때 편하게 입던 짧은 겉옷을 뜻했습니다.", cognates: "jack(남자의 이름, 기계 장치)", group: "1. 겉옷과 정장" },
-            { word: "sweater", meaning: "스웨터", root: "sweat(땀) + er → 체중 감량을 위해 땀을 내려고 입거나, 운동 후 땀이 식는 것을 막기 위해 입던 두꺼운 옷에서 유래했습니다.", cognates: "sweat(땀)", group: "1. 겉옷과 정장" },
-            { word: "uniform", meaning: "유니폼, 제복", root: "uni(하나의) + form(형태) → 소속감을 주기 위해 모두가 '단 하나의 같은 형태'로 통일해서 입는 옷입니다.", cognates: "unicorn(유니콘), form(형태)", group: "1. 겉옷과 정장" },
-            { word: "suit", meaning: "정장, 슈트; ~에게 잘 어울리다", root: "sequi(따르다) → 상의와 하의가 짝짝이가 아니라 같은 천으로 만들어 서로 셋트로 '따라가는' 옷입니다.", cognates: "pursue(추구하다), sequence(연속)", group: "1. 겉옷과 정장" },
-            { word: "vest", meaning: "조끼", root: "vestis(옷) → 고대 로마 시대에는 일반적인 겉옷을 의미했지만, 점차 속옷과 겉옷 사이에 덧입는 옷으로 의미가 좁혀졌습니다.", cognates: "invest(투자하다 - 돈이라는 옷을 입히다)", group: "1. 겉옷과 정장" },
-            { word: "dress", meaning: "옷, 의복; 옷을 입다", root: "directus(똑바른) → 군대에서 대열을 똑바로 맞추거나 매무새를 단정히 가다듬는 행위에서 '옷을 잘 챙겨 입다'로 뜻이 변했습니다.", cognates: "direct(직접적인, 지시하다)", group: "1. 겉옷과 정장" },
-
-            // 그룹 2: 바지와 치마
-            { word: "jeans", meaning: "청바지", root: "이탈리아의 항구 도시 '제노바(Genoa)'를 프랑스어로 젠느라고 불렀는데, 그곳 선원들이 입던 질긴 텐트 천으로 만든 바지에서 유래했습니다.", cognates: "Genoa(제노바)", group: "2. 바지와 치마" },
-            { word: "pants", meaning: "바지", root: "이탈리아 코미디 극에서 헐렁한 바지를 입고 나오던 우스꽝스러운 구두쇠 할아버지 캐릭터 '판탈로네(Pantalone)'의 이름에서 따온 단어입니다.", cognates: "panties(팬티)", group: "2. 바지와 치마" },
-            { word: "shorts", meaning: "반바지, 운동 팬츠", root: "short(짧은) + s(복수형) → 다리 통이 2개라서 항상 복수형(-s)으로 씁니다. 길이가 짧게 잘린 바지를 뜻합니다.", cognates: "short(짧은), shorten(짧게 하다)", group: "2. 바지와 치마" },
-            { word: "skirt", meaning: "치마", root: "고대 북유럽어 skyrta(짧은 튜닉)에서 유래. 셔츠(shirt)와 어원이 완전히 같으나, 상체로 가면 셔츠, 하체로 가면 스커트가 되었습니다.", cognates: "shirt(셔츠)", group: "2. 바지와 치마" },
-            { word: "overalls", meaning: "멜빵 바지", root: "over(위에) + all(모든 것) + s → 작업할 때 원래 입던 옷들이 더러워지지 않게 '모든 옷 그 위에' 덮어서 입는 작업복 바지입니다.", cognates: "over(위에), all(모든)", group: "2. 바지와 치마" },
-
-            // 그룹 3: 신발과 잡화
-            { word: "boots", meaning: "장화, 부츠, 목이 긴 구두", root: "고대 프랑스어 botte(두꺼운 신발)에서 유래. 진흙이나 눈으로부터 발과 종아리를 보호하기 위해 목이 길게 만들어진 신발입니다.", cognates: "boot(장화)", group: "3. 신발과 잡화" },
-            { word: "heels", meaning: "굽 높은 구두", root: "고대 영어 hela(발뒤꿈치). 신발에서 발뒤꿈치를 받치는 부분을 뜻하다가, 나중에는 아예 굽이 높은 구두 전체를 부르는 말이 되었습니다.", cognates: "heel(발뒤꿈치)", group: "3. 신발과 잡화" },
-            { word: "sandals", meaning: "샌들", root: "그리스어 sandalon(나무 판자 신발). 고대인들이 발바닥을 보호하기 위해 나무 판자나 가죽을 발에 끈으로 묶고 다니던 것에서 유래했습니다.", cognates: "sandalwood(백단향 - 향나무)", group: "3. 신발과 잡화" },
-            { word: "athletic shoes", meaning: "운동화", root: "athlete(운동선수) + shoes → 평상화가 아니라 운동 경기나 훈련을 할 때 선수들이 신는 전문적인 신발을 의미합니다.", cognates: "athlete(운동선수), athletic(운동의)", group: "3. 신발과 잡화" },
-            { word: "purse", meaning: "돈주머니, 지갑", root: "그리스어 bursa(가죽) → 옛날에는 동전을 넣고 다니기 위해 가죽을 둥글게 기워서 만든 작은 주머니를 사용했습니다.", cognates: "bursar(대학의 회계 담당자)", group: "3. 신발과 잡화" },
-            { word: "wallet", meaning: "지갑", root: "고대 독일어 wall(말려 있는 것) → 원래는 순례자들이 짐을 넣고 둘둘 말아서 다니던 가방이었으나, 지폐를 접어 넣는 지갑으로 변했습니다.", cognates: "wall(벽 - 둥글게 둘러싸인 것)", group: "3. 신발과 잡화" },
-            { word: "gloves", meaning: "장갑", root: "고대 영어 glof(손바닥). 추위나 거친 작업으로부터 손바닥과 손가락을 보호하기 위해 씌우는 덮개입니다.", cognates: "glove(장갑)", group: "3. 신발과 잡화" },
-            { word: "scarf", meaning: "스카프, 목도리", root: "프랑스어 escharpe(지갑을 묶는 끈) → 순례자들이 지갑을 어깨에 매던 끈에서 유래하여, 지금은 목에 두르는 장식용 천이 되었습니다.", cognates: "scrape(긁다)", group: "3. 신발과 잡화" },
-            { word: "stockings", meaning: "긴 양말, 스타킹", root: "고대 영어 stocc(통나무) → 옛날 사람들은 다리를 통나무와 같다고 생각했습니다. 다리(통나무) 전체를 덮는 덧신이란 뜻입니다.", cognates: "stock(재고, 줄기)", group: "3. 신발과 잡화" },
-            { word: "socks", meaning: "양말", root: "라틴어 soccus. 고대 로마 시대에 희극 배우들이 무대 위에서 폴짝폴짝 뛰기 위해 신던 가볍고 부드러운 굽 낮은 신발에서 유래했습니다.", cognates: "sock(양말)", group: "3. 신발과 잡화" },
-
-            // 그룹 4: 소재와 디테일
-            { word: "material", meaning: "직물, 천; 재료", root: "mater(어머니) → 생명을 낳는 어머니처럼, 어떤 사물을 만들어내는 가장 기본적이고 근원이 되는 뼈대나 천 조각을 의미합니다.", cognates: "mother(어머니), matter(물질)", group: "4. 소재와 디테일" },
-            { word: "button", meaning: "단추; ~에 단추를 채우다", root: "프랑스어 bouter(밀다) → 단추 구멍 안으로 둥근 조각을 꾹꾹 '밀어 넣어' 옷을 잠그는 행동에서 유래한 단어입니다.", cognates: "butt(밀다, 머리로 들이받다)", group: "4. 소재와 디테일" },
-            { word: "belt", meaning: "벨트, 허리띠", root: "라틴어 balteus(검대) → 로마 군인들이 무거운 칼을 차기 위해 허리나 어깨에 튼튼하게 두르던 가죽 띠에서 유래했습니다.", cognates: "belt(띠)", group: "4. 소재와 디테일" },
-            { word: "tie", meaning: "넥타이; ~을 묶다, 매다", root: "고대 영어 teag(밧줄). 목에 둘러서 밧줄처럼 묶는 매듭을 의미하며, 여기서 넥타이라는 뜻이 파생되었습니다.", cognates: "tie(묶다, 무승부)", group: "4. 소재와 디테일" },
-            { word: "bow tie", meaning: "나비넥타이", root: "bow(활) + tie(묶다) → 목에 매듭을 지어 묶어 놓은 모양이 나비나 사냥할 때 쓰는 '활(bow)'의 휘어진 모양을 닮아서 붙은 이름입니다.", cognates: "bow(활, 인사하다)", group: "4. 소재와 디테일" },
-            { word: "pocket", meaning: "주머니", root: "프랑스어 poque(자루) + et(작은) → 짐을 넣는 커다란 자루가 아니라, 옷에 달려 있는 '아주 작은 자루(주머니)'라는 뜻입니다.", cognates: "pouch(작은 주머니), poke(찌르다)", group: "4. 소재와 디테일" },
-
-            // 그룹 5: 옷 입기 구동사
-            { word: "put on", meaning: "(옷을) 입다, (모자, 안경 등을) 쓰다", root: "put(놓다) + on(몸 위에 접촉하여) → 옷이나 안경 같은 물건을 내 몸 위에 '올려놓아 딱 붙게(on)' 하는 동작입니다.", cognates: "put(놓다), on(~위에)", group: "5. 옷 입기 구동사" },
-            { word: "take off", meaning: "(옷 등을) 벗다; 이륙하다", root: "take(잡다) + off(떨어져) → 몸에 붙어있는 옷을 내 손으로 '잡아서' 몸에서 '떨어지게(off)' 떼어내는 동작입니다. 비행기가 땅에서 떨어질 때도 씁니다.", cognates: "take(잡다), off(분리된)", group: "5. 옷 입기 구동사" },
-            { word: "try on", meaning: "~을 입어 [신어] 보다", root: "try(시도하다) + on(몸에 접촉하여) → 이 옷이 나에게 잘 맞는지 알기 위해 내 몸에 직접 붙여(on) '시도해(try)' 보는 것입니다.", cognates: "try(시도하다), trial(시험)", group: "5. 옷 입기 구동사" }
-        ]
-    };
-
-    let currentLesson = 4; // 기본 선택 단원
-    let currentCardIndex = 0;
-    let isFlipped = false;
-    let currentFlatWordList = [];
-
-    // --- 단원(탭) 변경 로직 ---
-    function setLesson(lessonNumber) {
-        currentLesson = lessonNumber;
-        currentCardIndex = 0;
-
-        // 탭 UI 업데이트
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-            btn.classList.replace('text-rose-500', 'text-slate-500');
-            btn.classList.replace('border-rose-500', 'border-transparent');
-            btn.classList.remove('bg-rose-50');
-        });
-        const activeTab = document.getElementById(`tab-${lessonNumber}`);
-        activeTab.classList.add('active');
-        activeTab.classList.replace('text-slate-500', 'text-rose-500');
-        activeTab.classList.replace('border-transparent', 'border-rose-500');
-        activeTab.classList.add('bg-rose-50');
-
-        renderList();
-    }
-
-    // --- 리스트 렌더링 (아코디언 버그 수정됨) ---
-    function renderList() {
-        const listView = document.getElementById('listView');
-        let htmlContent = '';
-        const words = db[currentLesson];
-        currentFlatWordList = words; 
-
-        // 그룹별 데이터 분류
-        const groupedData = words.reduce((acc, word) => {
-            if (!acc[word.group]) acc[word.group] = [];
-            acc[word.group].push(word);
-            return acc;
-        }, {});
-
-        // 버그 해결을 위한 전역 카운터 (그룹 상관없이 0~29까지 순차 증가)
-        let globalWordIndex = 0;
-
-        for (const [groupName, groupWords] of Object.entries(groupedData)) {
-            // 그룹명에서 번호 제거하여 깔끔하게 표시
-            const cleanGroupName = groupName.replace(/^\d+\.\s*/, '');
-            
-            htmlContent += `
-                <div class="mb-6">
-                    <h2 class="text-sm font-bold text-slate-700 uppercase mb-3 px-1 border-l-4 border-rose-500 pl-3 flex items-center">
-                        <i class="fa-solid ${currentLesson === 4 ? 'fa-briefcase' : 'fa-tags'} mr-2 text-rose-500"></i> ${cleanGroupName}
-                    </h2>
-                    <div class="space-y-3">
-            `;
-            
-            groupWords.forEach((item) => {
-                // 완벽히 고유한 ID 생성
-                const id = `word-${currentLesson}-${globalWordIndex++}`;
-                
-                htmlContent += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden transform transition hover:-translate-y-0.5 hover:shadow-md">
-                        <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onclick="toggleAccordion('${id}')">
-                            <div>
-                                <h3 class="text-lg font-bold text-slate-800">${item.word}</h3>
-                                <p class="text-[0.9rem] text-slate-500 mt-1 font-medium">${item.meaning}</p>
-                            </div>
-                            <div class="text-rose-500 bg-rose-50 w-8 h-8 flex items-center justify-center rounded-full">
-                                <i id="icon-${id}" class="fa-solid fa-chevron-down transition-transform duration-300 text-sm"></i>
-                            </div>
-                        </div>
+                    <!-- 뒷면 (뜻, 어원) -->
+                    <div class="absolute inset-0 w-full h-full bg-slate-800 rounded-3xl shadow-2xl backface-hidden rotate-y-180 flex flex-col p-6 text-white overflow-y-auto border border-slate-700">
+                        <h2 id="cardWordBack" class="text-2xl font-bold mb-3 border-b border-slate-600 pb-2 text-blue-300">Word</h2>
+                        <p id="cardMeaning" class="text-xl font-black mb-6 text-white">의미</p>
                         
-                        <div id="content-${id}" class="accordion-content bg-slate-50 px-4 border-t border-slate-100">
-                            <div class="mb-4 pt-2">
-                                <span class="inline-block bg-rose-100 text-rose-700 text-xs px-2 py-1 rounded font-bold mb-2">
-                                    <i class="fa-solid fa-lightbulb mr-1"></i>어원스토리
-                                </span>
-                                <p class="text-sm text-slate-700 leading-relaxed font-medium break-keep">${item.root}</p>
-                            </div>
-                            <div class="pb-3">
-                                <span class="inline-block bg-slate-200 text-slate-600 text-xs px-2 py-1 rounded font-bold mb-1">
-                                    <i class="fa-solid fa-link mr-1"></i>패밀리 단어
-                                </span>
-                                <p class="text-[0.85rem] text-slate-500 font-semibold">${item.cognates}</p>
-                            </div>
+                        <div class="bg-slate-900 bg-opacity-80 rounded-xl p-4 shadow-inner">
+                            <p class="text-xs text-emerald-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-solid fa-lightbulb mr-1"></i> 메타인지 어원</p>
+                            <p id="cardRoot" class="text-sm leading-relaxed text-slate-300 font-medium break-keep">어원 설명</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 네비게이션 버튼 (이전/다음) -->
+            <div class="flex justify-center items-center space-x-8 px-6 pb-4">
+                <button onclick="prevCard()" class="w-16 h-16 rounded-full bg-slate-700 text-white flex justify-center items-center active:bg-slate-600 hover:bg-slate-600 transition border border-slate-600 shadow-lg">
+                    <i class="fa-solid fa-chevron-left text-2xl"></i>
+                </button>
+                <button onclick="nextCard()" class="w-16 h-16 rounded-full bg-blue-600 text-white flex justify-center items-center active:bg-blue-500 hover:bg-blue-500 transition shadow-[0_0_20px_rgba(37,99,235,0.4)] font-bold">
+                    <i class="fa-solid fa-chevron-right text-2xl"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // -------------------------------------------------------------
+        // 통합 데이터베이스 (SPA 구조의 핵심)
+        // 교재명 -> 단원명 -> 단어 배열 형태로 데이터를 저장합니다.
+        // -------------------------------------------------------------
+        const database = {
+            "워마 중등실력": {
+                "Day 6 (음식/식재료)": [
+                    { word: "butter", meaning: "버터", root: "bou(소) + tyros(치즈) → 소젖으로 만든 지방", group: "기본 식재료" },
+                    { word: "pepper", meaning: "후추; 고추", root: "산스크리트어 pippali(산초)에서 유래. 과거엔 황금보다 비쌌음", group: "조미료/향신료" },
+                    { word: "salt", meaning: "소금", root: "라틴어 sal(소금). 로마 병사 월급(salary)의 어원", group: "조미료/향신료" },
+                    { word: "sugar", meaning: "설탕", root: "산스크리트어 sharkara(자갈)에서 달콤한 알갱이로 뜻 변화", group: "조미료/향신료" },
+                    { word: "eat out", meaning: "외식하다", root: "eat(먹다) + out(밖에서)", group: "식생활 구동사" },
+                    { word: "appetizer", meaning: "애피타이저, 식욕을 돋우는 것", root: "ad(~를 향해) + pet(구하다). 식욕(appetite)을 자극하는 것", group: "식사 구성" },
+                    { word: "grab", meaning: "간단히 먹다; 잡다", root: "손으로 덥석 쥐다 → 음식을 빠르게 움켜쥐고 먹다", group: "식생활 구동사" },
+                    { word: "egg", meaning: "달걀", root: "고대 노르드어 egg", group: "기본 식재료" },
+                    { word: "bread", meaning: "빵", root: "breowan(양조하다, 발효시키다)에서 유래", group: "기본 식재료" },
+                    { word: "meal", meaning: "식사", root: "mæl(정해진 시간) → 정해진 시간에 먹는 것", group: "식사 구성" },
+                    { word: "soup", meaning: "수프", root: "suppa(빵을 적셔 먹는 국물)", group: "요리 종류" },
+                    { word: "pork", meaning: "돼지고기", root: "porcus(돼지). 프랑스 귀족들이 쓰던 말에서 식용 고기로 정착", group: "육류/해산물" },
+                    { word: "beef", meaning: "소고기", root: "bovem(소). 프랑스어 boeuf에서 영어로 유입", group: "육류/해산물" },
+                    { word: "meat", meaning: "고기", 매: "고기", root: "고대 영어 mete는 원래 '모든 음식'을 뜻했으나, 점차 고기로 축소됨", group: "육류/해산물" },
+                    { word: "fish", meaning: "생선", root: "piscis(물고기)", group: "육류/해산물" },
+                    { word: "cereal", meaning: "시리얼; 곡물의", root: "로마 농업의 여신 'Ceres(세레스)'에서 유래", group: "곡물/가공식품" },
+                    { word: "jam", meaning: "잼", root: "꽉 누르다(jam) → 과일을 꽉 눌러 으깨서 만든 것", group: "곡물/가공식품" },
+                    { word: "pickle", meaning: "피클; 절이다", root: "네덜란드어 pekel(소금물)", group: "요리 종류" },
+                    { word: "stew", meaning: "스튜, 찌개", root: "stufa(목욕탕, 난로) → 따뜻한 난로 위에서 끓인 요리", group: "요리 종류" },
+                    { word: "honey", meaning: "꿀", root: "고대 영어 hunig", group: "조미료/향신료" },
+                    { word: "noodle", meaning: "국수", root: "독일어 Nudel에서 유래", group: "곡물/가공식품" },
+                    { word: "rice", meaning: "밥, 쌀", root: "그리스어 oruza", group: "기본 식재료" },
+                    { word: "steak", meaning: "스테이크", root: "고대 노르드어 steik(막대기에 꽂아 굽는 고기)", group: "요리 종류" },
+                    { word: "powder", meaning: "가루", root: "pulvis(먼지) → 미세하게 부서진 가루", group: "식재료 형태" },
+                    { word: "snack", meaning: "간식", root: "snacken(덥석 물다) → 가볍게 베어 무는 음식", group: "식사 구성" },
+                    { word: "side dish", meaning: "반찬", root: "side(옆) + dish(접시) → 메인 요리 옆에 두는 접시", group: "식사 구성" },
+                    { word: "diet", meaning: "다이어트, 식이요법", root: "diaita(생활 방식) → 일상적인 식습관", group: "식사 구성" },
+                    { word: "flour", meaning: "밀가루", root: "flower(꽃)와 어원이 같음. 밀의 '가장 좋은(꽃다운)' 부분을 빻아 만든 것", group: "식재료 형태" },
+                    { word: "set the table", meaning: "식탁을 차리다", root: "set(배치하다) + table(식탁)", group: "식생활 구동사" },
+                    { word: "mustard", 매: "겨자", meaning: "겨자", root: "must(포도즙)에 겨자씨를 섞어 만들던 것에서 유래", group: "조미료/향신료" }
+                ],
+                "Day 7 (주방/요리도구)": [
+                    { word: "pot", meaning: "(속이 깊은) 냄비", root: "둥글고 우묵한 그릇을 뜻함", group: "조리 도구" },
+                    { word: "pan", meaning: "(납작한) 냄비, 팬", root: "patina(얕은 접시)", group: "조리 도구" },
+                    { word: "roll", meaning: "밀다", root: "rota(바퀴) → 둥글게 굴려서 반죽을 펴다", group: "조리 동작" },
+                    { word: "fry", meaning: "튀기다", root: "frigere(볶다, 굽다)", group: "조리 동작" },
+                    { word: "grill", meaning: "(열로) 굽다, 익히다", root: "cratis(격자무늬) → 석쇠 자국을 내며 굽다", group: "조리 동작" },
+                    { word: "bake", meaning: "굽다", root: "bacan(열로 데우다) → 빵을 오븐에 굽다", group: "조리 동작" },
+                    { word: "pour", meaning: "붓다", root: "액체를 쏟아 붓는 동작", group: "조리 동작" },
+                    { word: "tray", meaning: "쟁반", root: "고대 영어 treow(나무) → 나무로 만든 편평한 판", group: "식기류" },
+                    { word: "glass", meaning: "유리잔, 한 컵", root: "유리 재질로 만든 컵", group: "식기류" },
+                    { word: "plate", meaning: "접시", root: "plat(편평한) → 납작한 그릇", group: "식기류" },
+                    { word: "bowl", meaning: "(우묵한) 그릇", root: "bulla(둥근 것)", group: "식기류" },
+                    { word: "blender", meaning: "믹서기", root: "blend(섞다) + er(~기계)", group: "주방 가전" },
+                    { word: "cabinet", meaning: "진열대", root: "cabin(작은 오두막/방) + et(작은) → 물건을 수납하는 작은 공간", group: "가구/수납" },
+                    { word: "refrigerator", meaning: "냉장고", root: "re(다시) + frigus(추위) → 계속 차갑게 유지하는 기계", group: "주방 가전" },
+                    { word: "recipe", meaning: "요리법", root: "recipere(받다) → 의사의 '처방전'에서 요리법으로 뜻 변경", group: "요리 개념" },
+                    { word: "keep on ~ing", meaning: "계속 ~하다", root: "keep(유지하다) + on(계속) + ~ing", group: "구동사" },
+                    { word: "be used for", meaning: "~에 사용되다", root: "use(사용하다)의 수동태", group: "구동사" },
+                    { word: "steam", meaning: "찌다", root: "뜨거운 수증기로 요리하다", group: "조리 동작" },
+                    { word: "boil", meaning: "끓이다", root: "bulla(거품) → 물이 끓어 거품이 올라오는 모양", group: "조리 동작" },
+                    { word: "scoop", meaning: "주걱, 국자; 퍼내다", root: "scopa(삽)에서 유래", group: "조리 도구" },
+                    { word: "knife", meaning: "칼", root: "고대 노르드어 knifr", group: "조리 도구" },
+                    { word: "slice", meaning: "얇게 썰다", root: "slit(베다)에서 유래", group: "조리 동작" },
+                    { word: "chop", meaning: "썰다, 다지다", root: "도끼로 나무를 패듯 탕탕 내리쳐서 자르다", group: "조리 동작" },
+                    { word: "beat", meaning: "휘저어 섞다", root: "두드리다, 때리다 → 계란 등을 강하게 휘젓다", group: "조리 동작" },
+                    { word: "kettle", meaning: "주전자", root: "catinus(깊은 그릇)", group: "조리 도구" },
+                    { word: "jar", meaning: "(입구가 넓은) 병, 단지", root: "아랍어 jarrah(흙으로 빚은 물통)", group: "가구/수납" },
+                    { word: "basket", meaning: "바구니", root: "갈대나 나뭇가지로 엮은 통", group: "가구/수납" },
+                    { word: "opener", meaning: "따개", root: "open(열다) + er(도구)", group: "조리 도구" },
+                    { word: "handle", meaning: "손잡이", root: "hand(손) + le(도구) → 손으로 잡는 부분", group: "요리 개념" },
+                    { word: "lid", meaning: "뚜껑", root: "덮어서 가리는 것", group: "요리 개념" }
+                ],
+                "Day 8 (집/가구/생활)": [
+                    { word: "tap", meaning: "수도꼭지", root: "통에 구멍을 뚫고 꽂은 '마개'에서 물이 나오는 관으로 의미 확장", group: "집 구조설비" },
+                    { word: "sink", meaning: "싱크대, 개수대", root: "물이 가라앉아(sink) 배수구로 빠져나가는 곳", group: "집 구조설비" },
+                    { word: "bathroom", meaning: "욕실", root: "bath(목욕) + room(방)", group: "방/공간" },
+                    { word: "bedroom", meaning: "침실", root: "bed(침대) + room(방)", group: "방/공간" },
+                    { word: "garage", meaning: "차고", root: "garer(보호하다) → 차를 날씨로부터 보호하는 곳", group: "방/공간" },
+                    { word: "garden", meaning: "정원", root: "yard(울타리 친 곳)와 어원이 같음", group: "방/공간" },
+                    { word: "yard", meaning: "마당", root: "geard(둘러싸인 뜰)", group: "방/공간" },
+                    { word: "roof", meaning: "지붕", root: "건물의 맨 꼭대기 덮개", group: "집 구조설비" },
+                    { word: "ceiling", meaning: "천장", root: "caelum(하늘) → 방 안의 하늘", group: "집 구조설비" },
+                    { word: "floor", meaning: "마루, 층", root: "꽃(flower)의 어원과 같음. 곡식을 터는 '평평한 바닥'에서 유래", group: "집 구조설비" },
+                    { word: "stair", meaning: "계단", root: "stigan(오르다)에서 유래", group: "집 구조설비" },
+                    { word: "gate", meaning: "문", root: "gap(틈) → 울타리를 열어 만든 틈새", group: "집 구조설비" },
+                    { word: "turn on", meaning: "켜다", root: "turn(돌리다). 옛날엔 밸브를 '돌려서' 전기/가스를 켰음", group: "생활 구동사" },
+                    { word: "knock", meaning: "노크를 하다", root: "의성어 '똑똑' 치는 소리", group: "생활 구동사" },
+                    { word: "apartment", meaning: "아파트", root: "a(따로) + part(나누다) → 한 건물을 여러 세대로 나눈 것", group: "주거 형태" },
+                    { word: "neighbor", meaning: "이웃", root: "neah(가까운) + gebur(농부) → 가까이 사는 사람", group: "주거 형태" },
+                    { word: "in place", meaning: "제자리에", root: "원래 있어야 할 정확한 장소(place)에", group: "생활 구동사" },
+                    { word: "scale", meaning: "체중계, 저울", root: "scala(사다리) → 눈금이 사다리처럼 생긴 것", group: "가구/소품" },
+                    { word: "mirror", meaning: "거울", root: "mirari(놀라다) → 비치는 모습을 보고 감탄하다", group: "가구/소품" },
+                    { word: "curtain", meaning: "커튼", root: "cortina(둥근 덮개)", group: "가구/소품" },
+                    { word: "shelf", meaning: "선반", root: "벽에 튀어나오게 설치한 판자", group: "가구/소품" },
+                    { word: "drawer", meaning: "서랍", root: "draw(끌어당기다) + er → 손으로 쓱 끌어당겨 여는 통", group: "가구/소품" },
+                    { word: "lamp", meaning: "전기스탠드", root: "lampein(빛나다)", group: "가구/소품" },
+                    { word: "soap", meaning: "비누", root: "고대 게르만어 saipon", group: "생활 용품" },
+                    { word: "towel", meaning: "타월", root: "물을 닦아내는 천", group: "생활 용품" },
+                    { word: "sheet", meaning: "시트, 홑이불", root: "넓게 펼쳐진 얇은 천이나 종이", group: "생활 용품" },
+                    { word: "laundry", meaning: "세탁물", root: "lavare(씻다)에서 파생", group: "생활 용품" },
+                    { word: "water", meaning: "물; 물을 주다", root: "가장 기본적인 생명의 원천", group: "생활 용품" },
+                    { word: "feed", meaning: "먹이를 주다", root: "food(음식)의 동사형", group: "생활 구동사" },
+                    { word: "lawn", meaning: "잔디", root: "launde(숲 속의 빈터)에서 인공적으로 풀을 깎아 만든 마당으로 변함", group: "방/공간" }
+                ],
+                "Day 9 (교통/도로)": [
+                    { word: "get on", meaning: "승차하다", root: "탈것 '위(on)'로 발을 딛고 올라가다", group: "교통 구동사" },
+                    { word: "transfer", meaning: "환승하다", root: "trans(가로질러) + fer(나르다) → 다른 노선으로 넘어가다", group: "교통 구동사" },
+                    { word: "drive", meaning: "운전하다", root: "원래 동물을 '몰다'에서 자동차를 조종하다로 뜻 변경", group: "교통 구동사" },
+                    { word: "park", meaning: "주차하다; 공원", root: "울타리 쳐진 구역(공원) → 마차를 '정해진 구역에 세워두다'로 의미 확장", group: "교통 구동사" },
+                    { word: "cross", meaning: "건너다; 십자가", root: "가로질러 십자(X) 형태로 지나가다", group: "교통 구동사" },
+                    { word: "crash", meaning: "충돌하다", root: "와장창 부딪히는 소리에서 유래한 의성어", group: "교통 구동사" },
+                    { word: "limit", meaning: "제한하다; 한계", root: "limes(경계선) → 속도나 구역의 선을 긋다", group: "교통 구동사" },
+                    { word: "transport", meaning: "수송하다", root: "trans(가로질러) + port(항구/나르다)", group: "교통 구동사" },
+                    { word: "on foot", meaning: "도보로", root: "발(foot) 위에(on) 체중을 싣고 걷다", group: "교통 구동사" },
+                    { word: "forward", meaning: "앞으로", root: "fore(앞) + ward(방향)", group: "방향/경로" },
+                    { word: "straight", meaning: "직선으로", root: "stretch(늘리다)에서 유래. 팽팽하게 당겨진 선처럼 곧은", group: "방향/경로" },
+                    { word: "left", meaning: "왼쪽", root: "고대 영어 lyft(약한) → 오른손잡이가 많아 왼손을 '약한 손'이라 부름", group: "방향/경로" },
+                    { word: "direction", meaning: "방향", root: "di(분리) + rect(똑바른) → 똑바로 가리키는 쪽", group: "방향/경로" },
+                    { word: "curve", meaning: "커브, 굽이", root: "curvus(굽은)", group: "방향/경로" },
+                    { word: "route", meaning: "노선, 경로", root: "rupt(부수다) → 숲을 헤치고 부수어 만든 길", group: "도로 시설" },
+                    { word: "road", meaning: "도로", root: "ride(타다) → 말을 타고 지나가는 길", group: "도로 시설" },
+                    { word: "track", meaning: "선로, 궤도", root: "수레바퀴가 지나가며 남긴 '자국'", group: "도로 시설" },
+                    { word: "platform", meaning: "승강장", root: "plat(평평한) + form(형태) → 열차를 타기 위해 평평하게 돋운 단", group: "도로 시설" },
+                    { word: "station", meaning: "역, 정거장", root: "stare(서다) → 마차가 잠시 멈춰 서는 곳", group: "도로 시설" },
+                    { word: "harbor", meaning: "항구", root: "here(군대) + beorg(은신처) → 원래 군함이 숨는 피난처", group: "도로 시설" },
+                    { word: "subway", meaning: "지하철", root: "sub(아래에) + way(길)", group: "수단 및 구성요소" },
+                    { word: "bicycle", meaning: "자전거", root: "bi(두 개) + cycle(바퀴)", group: "수단 및 구성요소" },
+                    { word: "wheel", meaning: "바퀴", root: "둥글게 굴러가는 원형 물체", group: "수단 및 구성요소" },
+                    { word: "seat", meaning: "좌석", root: "sit(앉다)의 명사형", group: "수단 및 구성요소" },
+                    { word: "traffic", meaning: "교통(량)", root: "trans(가로질러) + fic(하다) → 사람과 차가 오고 감", group: "교통 일반" },
+                    { word: "passenger", meaning: "승객", root: "passage(통과) + er → 지나가는 사람, 나그네", group: "교통 일반" },
+                    { word: "fare", meaning: "요금", root: "faran(여행하다) → 여행할 때 내는 돈", group: "교통 일반" },
+                    { word: "sign", meaning: "표지판", root: "signum(표시) → 길을 안내하는 기호", group: "교통 일반" },
+                    { word: "license", meaning: "면허증", root: "licere(허락하다) → 운전할 수 있게 허락받은 증서", group: "교통 일반" },
+                    { word: "accident", meaning: "사고", root: "ad(쪽으로) + cadere(떨어지다) → 우연히 일어난 나쁜 일", group: "교통 일반" }
+                ],
+                "Day 10 (사무/문구류)": [
+                    { word: "company", meaning: "회사", root: "com(함께) + pan(빵) + y → 빵(이익)을 함께 나눠 먹는 무리", group: "장소/문서" },
+                    { word: "document", meaning: "문서, 서류", root: "docere(가르치다) → 증거로서 가르쳐주는 종이", group: "장소/문서" },
+                    { word: "letter", meaning: "편지; 글자", root: "글자(letter)를 모아서 쓴 종이가 편지", group: "장소/문서" },
+                    { word: "message", meaning: "메시지", root: "miss(보내다) + age → 누군가에게 보내는 내용", group: "장소/문서" },
+                    { word: "printout", meaning: "출력물", root: "print(인쇄) + out(밖으로) 나온 종이", group: "장소/문서" },
+                    { word: "room", meaning: "방, 실", root: "고대 영어 rum(공간, 여유)", group: "장소/문서" },
+                    { word: "stationery", meaning: "문구류", root: "station(한 자리에 서 있는 상인) → 예전엔 책/종이를 파는 고정된 상인을 뜻함", group: "사무 기기/문구" },
+                    { word: "printer", meaning: "프린터", root: "print(누르다) + er → 활자를 종이에 꾹 누르는 기계", group: "사무 기기/문구" },
+                    { word: "calculator", meaning: "계산기", root: "calculus(작은 돌) → 고대 로마인들이 조약돌로 셈을 하던 것에서 유래", group: "사무 기기/문구" },
+                    { word: "highlighter", meaning: "형광펜", root: "high(높게) + light(빛) → 눈에 띄게 빛나게 칠하는 펜", group: "사무 기기/문구" },
+                    { word: "eraser", meaning: "지우개", root: "e(밖으로) + rase(긁다) → 연필 자국을 박박 긁어 없애다", group: "사무 기기/문구" },
+                    { word: "scissors", meaning: "가위", root: "scindere(자르다). 날이 2개라서 항상 복수형(-s) 사용", group: "사무 기기/문구" },
+                    { word: "glue", meaning: "풀; 접착하다", root: "glus(아교, 접착제)", group: "사무 기기/문구" },
+                    { word: "pin", meaning: "핀; 핀으로 고정하다", root: "라틴어 pinna(뾰족한 깃털)", group: "사무 기기/문구" },
+                    { word: "clip", meaning: "클립; 자르다", root: "단단히 움켜쥐다(clip)에서 유래", group: "사무 기기/문구" },
+                    { word: "envelope", meaning: "봉투", root: "en(안에) + velop(싸다) → 편지를 안으로 감싸는 것", group: "사무 기기/문구" },
+                    { word: "folder", meaning: "서류철", root: "fold(접다) + er → 종이를 반으로 접어서 보관하는 것", group: "사무 기기/문구" },
+                    { word: "calendar", meaning: "달력", root: "calendae(로마력의 매월 첫날). 이자 갚는 날짜를 기록하던 장부에서 유래", group: "가구/소품" },
+                    { word: "bookcase", meaning: "책장", root: "book(책) + case(상자/보관함)", group: "가구/소품" },
+                    { word: "desk", meaning: "책상", root: "discus(원반, 판) → 납작한 판자 테이블", group: "가구/소품" },
+                    { word: "chair", meaning: "의자", root: "cathedra(주교의 의자, 권위 있는 자리)에서 유래", group: "가구/소품" },
+                    { word: "interview", meaning: "인터뷰, 면접", root: "inter(서로) + view(보다) → 마주 보고 평가하다", group: "사무실 행동" },
+                    { word: "manager", meaning: "관리자", root: "manus(손) → 말을 손으로 고삐 쥐어 '다루는' 사람", group: "사무실 행동" },
+                    { word: "deal with", meaning: "다루다, 처리하다", root: "deal(나누다, 거래하다) + with → 문제와 맞붙어 해결하다", group: "사무실 행동" },
+                    { word: "fill out", meaning: "작성하다, 기입하다", root: "fill(채우다) + out(끝까지) → 빈칸을 끝까지 모두 채우다", group: "사무실 행동" },
+                    { word: "call", meaning: "전화를 걸다", root: "소리쳐 부르다 → 전화선 너머로 부르다", group: "사무실 행동" },
+                    { word: "staple", meaning: "스테이플러로 고정하다", root: "원래는 기둥이나 버팀목을 뜻함. ㄷ자 모양의 쇠로 꽉 고정하다", group: "사무실 행동" },
+                    { word: "photocopy", meaning: "사진 복사하다", root: "photo(빛) + copy(복사) → 빛을 이용해 복사하다", group: "사무실 행동" },
+                    { word: "punch", meaning: "구멍을 뚫다", root: "뾰족한 도구로 찌르거나 주먹으로 치다", group: "사무실 행동" },
+                    { word: "seal", meaning: "도장; 날인하다", root: "sigillum(작은 조각상/도장). 편지를 밀랍으로 봉인하던 것", group: "사무실 행동" }
+                ],
+                "Day 11 (도시/장소/길찾기)": [
+                    { word: "intersection", meaning: "교차로", root: "inter(서로) + sect(자르다) → 두 도로가 가로질러 잘리는 곳", group: "도로 및 길" },
+                    { word: "highway", meaning: "고속도로", root: "high(높은) + way(길) → 평지보다 높게 돋워 만든 주요 도로", group: "도로 및 길" },
+                    { word: "street", meaning: "거리", root: "sternere(포장하다) → 돌로 평평하게 덮어 만든 길", group: "도로 및 길" },
+                    { word: "avenue", meaning: "대로, 넓은 길", root: "a(~로) + ven(오다) → 도시나 대저택으로 들어오는 큰 진입로", group: "도로 및 길" },
+                    { word: "sidewalk", meaning: "인도, 보도", root: "side(가장자리) + walk(걷다) → 찻길 옆 사람이 걷는 길", group: "도로 및 길" },
+                    { word: "crosswalk", meaning: "횡단보도", root: "cross(건너다) + walk(걷는 곳)", group: "도로 및 길" },
+                    { word: "corner", meaning: "모퉁이, 구석", root: "cornu(뿔) → 뿔처럼 툭 튀어나온 모서리 부분", group: "도로 및 길" },
+                    { word: "village", meaning: "마을, 촌락", root: "villa(시골 저택) 주변에 농부들이 모여 형성된 동네", group: "도시 및 장소" },
+                    { word: "building", meaning: "건물", root: "build(짓다) + ing", group: "도시 및 장소" },
+                    { word: "city hall", meaning: "시청", root: "도시(city)의 공무를 보는 넓은 회관(hall)", group: "도시 및 장소" },
+                    { word: "police station", meaning: "경찰서", root: "치안 유지를 위해 경찰(police)이 서 있는(station) 본부", group: "도시 및 장소" },
+                    { word: "fire station", meaning: "소방서", root: "화재(fire) 진압대가 상주하는 곳", group: "도시 및 장소" },
+                    { word: "hospital", meaning: "병원", root: "hospes(손님) → 원래는 여행자나 가난한 자를 돌보는 숙소에서 유래", group: "도시 및 장소" },
+                    { word: "museum", meaning: "박물관", root: "뮤즈(예술과 학문의 여신)를 모시는 신전에서 유래", group: "도시 및 장소" },
+                    { word: "bakery", meaning: "제과점", root: "bake(굽다) + ry(가게)", group: "도시 및 장소" },
+                    { word: "drugstore", meaning: "약국", root: "drug(약) + store(가게)", group: "도시 및 장소" },
+                    { word: "department store", meaning: "백화점", root: "물건을 여러 부서(department)로 나누어 파는 큰 상점", group: "도시 및 장소" },
+                    { word: "sewer", meaning: "하수구", root: "ex(밖으로) + aqua(물) → 더러운 물을 밖으로 빼내는 관", group: "기반 시설" },
+                    { word: "trash", meaning: "쓰레기", root: "나무의 잔가지나 버려진 잎사귀에서 유래", group: "기반 시설" },
+                    { word: "signal", meaning: "신호기", root: "sign(표시) → 길에서 가고 서는 것을 표시함", group: "기반 시설" },
+                    { word: "pedestrian", meaning: "보행자", root: "ped(발) + ian(사람) → 발로 걸어 다니는 사람", group: "기반 시설" },
+                    { word: "direction", meaning: "방향", root: "di(분리) + rect(똑바른) → 똑바로 가리키는 쪽", group: "길찾기/안내" },
+                    { word: "turn", meaning: "회전하다", root: "라틴어 tornare(둥글게 돌리다)", group: "길찾기/안내" },
+                    { word: "straight", meaning: "똑바로, 직선으로", root: "stretch(팽팽히 당기다) → 구부러지지 않은 상태", group: "길찾기/안내" },
+                    { word: "left", meaning: "왼쪽", root: "오른손잡이가 많아 왼손을 '약한 손(lyft)'이라 불렀음", group: "길찾기/안내" },
+                    { word: "in the middle of", meaning: "~의 중간에", root: "가운데(middle)에 위치한", group: "길찾기/안내" },
+                    { word: "block", meaning: "블록, 구획; 막다", root: "커다란 나무 덩어리 → 도로로 잘라 나눈 네모난 구역", group: "길찾기/안내" },
+                    { word: "be known for", meaning: "~로 유명하다", root: "특징 때문에 사람들에게 알려지다(known)", group: "장소 표현" },
+                    { word: "give ~ a ride", meaning: "~를 태워 주다", root: "자동차나 말 타는 것(ride)을 제공하다(give)", group: "장소 표현" },
+                    { word: "patrol", meaning: "순찰대, 순찰 경관", root: "patouiller(진흙탕을 걷다) → 밤낮으로 동네를 돌아다니며 지키다", group: "장소 표현" }
+                ]
+            }
+        };
+
+        // 전역 상태 변수들 (화면 제어 및 플래시카드 로직용)
+        let currentFlatList = [];     // 현재 선택된 단원의 단어 리스트
+        let currentCardIndex = 0;     // 현재 보고 있는 카드의 번호
+        let isFlipped = false;        // 카드가 뒤집혀 있는지 여부
+        let globalWordIndex = 0;      // 아코디언 버그 방지를 위한 고유 ID 카운터
+
+        // 사이드바 메뉴 동적 렌더링 함수
+        function renderMenu() {
+            const menuContainer = document.getElementById('menuContainer');
+            let menuHTML = '';
+
+            // database 객체를 순회하며 HTML 메뉴 만들기
+            for (const book in database) {
+                menuHTML += `
+                    <div class="mb-6">
+                        <h3 class="text-[11px] font-black text-slate-400 mb-2 px-5 uppercase tracking-widest">${book}</h3>
+                        <ul class="space-y-0.5">
                 `;
-            });
-            htmlContent += `</div></div>`;
+                
+                for (const lesson in database[book]) {
+                    // 특수문자나 띄어쓰기를 없애 안전한 HTML ID 생성
+                    const safeId = `menu-${book.replace(/\s+/g, '')}-${lesson.replace(/[^a-zA-Z0-9]/g, '')}`;
+                    menuHTML += `
+                        <li>
+                            <button id="${safeId}" onclick="loadLesson('${book}', '${lesson}', '${safeId}')" 
+                                class="menu-item w-full text-left px-5 py-2.5 text-sm text-slate-600 font-medium hover:bg-slate-100 transition flex items-center group">
+                                <i class="fa-solid fa-chevron-right text-[9px] mr-3 opacity-30 group-hover:opacity-70 group-hover:translate-x-1 transition-all"></i>
+                                ${lesson}
+                            </button>
+                        </li>
+                    `;
+                }
+                menuHTML += `</ul></div>`;
+            }
+            menuContainer.innerHTML = menuHTML;
         }
-        listView.innerHTML = htmlContent;
-        updateFlashcard();
-    }
 
-    // --- 아코디언 동작 제어 ---
-    function toggleAccordion(id) {
-        const content = document.getElementById(`content-${id}`);
-        const icon = document.getElementById(`icon-${id}`);
-        
-        if (content.classList.contains('open')) {
-            content.classList.remove('open');
-            icon.classList.remove('rotate-180');
-        } else {
-            content.classList.add('open');
-            icon.classList.add('rotate-180');
+        // 특정 단원을 클릭했을 때 화면 데이터를 갈아끼우는 함수
+        function loadLesson(book, lesson, menuId) {
+            // 1. 모든 메뉴의 하이라이트(active) 효과 지우기
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            // 2. 방금 클릭한 메뉴만 하이라이트 효과 넣기
+            document.getElementById(menuId).classList.add('active');
+
+            // 3. 상단 헤더 텍스트 변경
+            document.getElementById('currentLessonTitle').innerText = lesson;
+            document.getElementById('currentBookTitle').innerText = book;
+            
+            // 4. 모드 전환 버튼(카드모드) 노출
+            document.getElementById('modeToggleBtn').classList.remove('hidden');
+
+            // 5. 현재 학습할 단어 데이터 배열을 전역 변수에 저장
+            currentFlatList = database[book][lesson];
+            currentCardIndex = 0; // 카드 인덱스 초기화
+            globalWordIndex = 0;  // 아코디언 고유 ID 카운터 초기화
+
+            // 6. 모바일 환경이면 클릭 시 자동으로 사이드바 닫기
+            if(window.innerWidth < 768) {
+                toggleSidebar();
+            }
+
+            // 7. 메인 리스트 뷰 그리기 함수 호출
+            renderList();
         }
-    }
 
-    // --- 화면 모드 토글 (리스트 <-> 플래시카드) ---
-    function toggleMode() {
-        const flashcardView = document.getElementById('flashcardView');
-        const modeBtn = document.getElementById('modeToggleBtn');
-        
-        if (flashcardView.classList.contains('hidden')) {
-            flashcardView.classList.remove('hidden');
-            flashcardView.classList.add('flex');
-            modeBtn.innerHTML = '<i class="fa-solid fa-list mr-1"></i> 목록보기';
+        // 메인 리스트 뷰(아코디언 형태) 렌더링 함수
+        function renderList() {
+            const listView = document.getElementById('listView');
+            let htmlContent = '';
+            
+            // 단어를 'group' 속성별로 묶어서 새 객체(groupedData) 생성
+            const groupedData = currentFlatList.reduce((acc, word) => {
+                if (!acc[word.group]) acc[word.group] = [];
+                acc[word.group].push(word);
+                return acc;
+            }, {});
+
+            // 그룹별로 화면에 그리기
+            for (const [groupName, groupWords] of Object.entries(groupedData)) {
+                htmlContent += `
+                    <div class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <div class="bg-blue-50 border-b border-blue-100 py-2.5 px-4 flex items-center">
+                            <div class="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
+                            <h2 class="text-sm font-bold text-blue-800">${groupName}</h2>
+                        </div>
+                        <div class="divide-y divide-slate-100">
+                `;
+                
+                groupWords.forEach((item) => {
+                    // 완벽하게 고유한 ID 할당 (클릭 오류 방지)
+                    const id = `word-item-${globalWordIndex++}`;
+                    htmlContent += `
+                        <div>
+                            <!-- 단어 표제어 부분 (클릭 시 펼쳐짐) -->
+                            <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onclick="toggleAccordion('${id}')">
+                                <div class="pr-4">
+                                    <h3 class="text-lg font-extrabold text-slate-800">${item.word}</h3>
+                                    <p class="text-[0.9rem] font-medium text-slate-500 mt-0.5">${item.meaning}</p>
+                                </div>
+                                <div class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 flex-shrink-0">
+                                    <i id="icon-${id}" class="fa-solid fa-chevron-down transition-transform duration-300 text-sm"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- 숨겨진 상세 설명 부분 (아코디언) -->
+                            <div id="content-${id}" class="accordion-content bg-slate-50 px-5 border-t border-slate-100">
+                                <div class="mb-1">
+                                    <span class="inline-block bg-emerald-100 text-emerald-800 text-[10px] px-2 py-1 rounded-md font-bold mb-1.5 uppercase tracking-wide"><i class="fa-solid fa-lightbulb mr-1"></i> 메타인지 어원</span>
+                                    <p class="text-sm text-slate-700 leading-relaxed font-medium break-keep">${item.root}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlContent += `</div></div>`;
+            }
+            listView.innerHTML = htmlContent;
+            
+            // 리스트가 업데이트될 때 플래시카드 데이터도 준비해 둠
             updateFlashcard();
-        } else {
-            flashcardView.classList.add('hidden');
-            flashcardView.classList.remove('flex');
-            modeBtn.innerHTML = '<i class="fa-solid fa-layer-group mr-1"></i> 카드모드';
         }
-    }
 
-    // --- 플래시카드 내용 갱신 ---
-    function updateFlashcard() {
-        const item = currentFlatWordList[currentCardIndex];
-        const cleanGroupName = item.group.replace(/^\d+\.\s*/, '');
-        
-        document.getElementById('cardGroup').innerText = `Day ${currentLesson} - ${cleanGroupName}`;
-        document.getElementById('cardWord').innerText = item.word;
-        document.getElementById('cardWordBack').innerText = item.word;
-        document.getElementById('cardMeaning').innerText = item.meaning;
-        document.getElementById('cardRoot').innerText = item.root;
-        document.getElementById('cardCognates').innerText = item.cognates;
-        
-        document.getElementById('flashcardCounter').innerText = `${currentCardIndex + 1} / ${currentFlatWordList.length}`;
-        
-        // 카드 넘길 때 항상 앞면으로 리셋
-        if(isFlipped) {
-            document.getElementById('flashcard').classList.remove('rotate-y-180');
-            isFlipped = false;
+        // 아코디언(숨김 내용 펼치기) 토글 함수
+        function toggleAccordion(id) {
+            const content = document.getElementById(`content-${id}`);
+            const icon = document.getElementById(`icon-${id}`);
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.classList.remove('rotate-180');
+            } else {
+                content.classList.add('open');
+                icon.classList.add('rotate-180');
+            }
         }
-    }
 
-    // --- 카드 뒤집기 ---
-    function flipCard() {
-        const card = document.getElementById('flashcard');
-        isFlipped = !isFlipped;
-        if (isFlipped) {
-            card.classList.add('rotate-y-180');
-        } else {
-            card.classList.remove('rotate-y-180');
+        // 모바일 사이드바 열기/닫기 토글 함수
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.remove('hidden');
+            }
         }
-    }
 
-    // --- 이전/다음 카드 ---
-    function prevCard() {
-        currentCardIndex = (currentCardIndex > 0) ? currentCardIndex - 1 : currentFlatWordList.length - 1;
-        updateFlashcard();
-    }
+        // 리스트 모드 <-> 플래시카드 모드 전환 함수
+        function toggleFlashcardMode() {
+            if(currentFlatList.length === 0) return; // 선택된 단원이 없으면 작동 안 함
+            
+            const flashcardView = document.getElementById('flashcardView');
+            const modeBtn = document.getElementById('modeToggleBtn');
+            const listView = document.getElementById('listView');
+            
+            if (flashcardView.classList.contains('hidden')) {
+                // 카드 모드 열기
+                flashcardView.classList.remove('hidden');
+                flashcardView.classList.add('flex');
+                listView.classList.add('hidden'); // 뒷배경 스크롤 방지용으로 리스트 숨김
+                modeBtn.innerHTML = '<i class="fa-solid fa-list mr-1"></i> 목록보기';
+                updateFlashcard();
+            } else {
+                // 리스트 모드로 돌아가기
+                flashcardView.classList.add('hidden');
+                flashcardView.classList.remove('flex');
+                listView.classList.remove('hidden');
+                modeBtn.innerHTML = '<i class="fa-solid fa-clone mr-1"></i> 카드모드';
+            }
+        }
 
-    function nextCard() {
-        currentCardIndex = (currentCardIndex < currentFlatWordList.length - 1) ? currentCardIndex + 1 : 0;
-        updateFlashcard();
-    }
+        // 플래시카드 안의 텍스트 업데이트 함수
+        function updateFlashcard() {
+            if(currentFlatList.length === 0) return;
+            const item = currentFlatList[currentCardIndex];
+            
+            document.getElementById('cardGroup').innerText = item.group;
+            document.getElementById('cardWord').innerText = item.word;
+            document.getElementById('cardWordBack').innerText = item.word;
+            document.getElementById('cardMeaning').innerText = item.meaning;
+            document.getElementById('cardRoot').innerText = item.root;
+            
+            document.getElementById('flashcardCounter').innerText = `${currentCardIndex + 1} / ${currentFlatList.length}`;
+            
+            // 다른 카드로 넘어갈 땐 무조건 앞면(단어)이 보이도록 덮어둠
+            if(isFlipped) {
+                document.getElementById('flashcard').classList.remove('rotate-y-180');
+                isFlipped = false;
+            }
+        }
 
-    // 초기화
-    window.onload = () => {
-        setLesson(4); // 앱 실행 시 Day 4 기본 선택
-    };
-</script>
+        // 3D 카드 뒤집기 애니메이션 트리거
+        function flipCard() {
+            const card = document.getElementById('flashcard');
+            isFlipped = !isFlipped;
+            card.classList.toggle('rotate-y-180');
+        }
+
+        // 이전 카드로 이동
+        function prevCard() {
+            currentCardIndex = (currentCardIndex > 0) ? currentCardIndex - 1 : currentFlatList.length - 1;
+            updateFlashcard();
+        }
+
+        // 다음 카드로 이동
+        function nextCard() {
+            currentCardIndex = (currentCardIndex < currentFlatList.length - 1) ? currentCardIndex + 1 : 0;
+            updateFlashcard();
+        }
+
+        // 웹 브라우저가 켜질 때 최초 실행되는 함수
+        window.onload = () => {
+            renderMenu(); // 사이드바 메뉴 생성
+            
+            // (옵션) 시작할 때 첫 번째 교재의 첫 번째 단원을 자동으로 열어주고 싶다면 아래 코드 활성화
+            // loadLesson("워마 중등실력", "Day 6 (음식/식재료)", "menu-워마중등실력-Day6음식식재료");
+        };
+    </script>
 </body>
 </html>
