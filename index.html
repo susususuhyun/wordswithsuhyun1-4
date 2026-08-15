@@ -3,555 +3,1010 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>종합 영단어 포털 (SPA)</title>
+    <title>VocaMaster</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* 기본 폰트 및 앱 스타일 */
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; overflow: hidden; }
-        
-        /* 스크롤바 커스텀 */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
-
-        /* 아코디언 애니메이션 */
-        .accordion-content { transition: max-height 0.3s ease-in-out, padding 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 0; opacity: 0; overflow: hidden; }
-        .accordion-content.open { max-height: 400px; opacity: 1; padding-top: 1rem; padding-bottom: 1rem; }
-        
-        /* 플래시카드 3D 애니메이션 */
-        .perspective-1000 { perspective: 1000px; }
-        .transform-style-3d { transform-style: preserve-3d; }
-        .backface-hidden { backface-visibility: hidden; }
-        .rotate-y-180 { transform: rotateY(180deg); }
-        .flip-card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
-
-        /* 모바일 사이드바 트랜지션 */
-        #sidebar { transition: transform 0.3s ease-in-out; }
-        @media (max-width: 768px) {
-            #sidebar { transform: translateX(-100%); }
-            #sidebar.open { transform: translateX(0); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            -webkit-tap-highlight-color: transparent;
         }
-
-        /* 활성화된 사이드바 메뉴 스타일 */
-        .menu-item.active { background-color: #eff6ff; color: #3b82f6; border-right: 4px solid #3b82f6; font-weight: 700; }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        .tab-btn {
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
     </style>
 </head>
-<body class="flex h-screen w-full relative">
+<body class="text-gray-800 antialiased overflow-hidden selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- 모바일 환경을 위한 사이드바 오버레이 배경 -->
-    <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
-
-    <!-- 왼쪽 사이드바 (내비게이션) -->
-    <aside id="sidebar" class="fixed md:static inset-y-0 left-0 w-64 bg-white border-r border-slate-200 z-50 flex flex-col h-full shadow-2xl md:shadow-none flex-shrink-0">
-        <!-- 사이드바 헤더 -->
-        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-            <h1 class="text-lg font-black text-slate-800 tracking-tight"><i class="fa-solid fa-graduation-cap text-blue-600 mr-2"></i>통합 단어장</h1>
-            <button onclick="toggleSidebar()" class="md:hidden text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark text-xl"></i></button>
-        </div>
+    <div id="app" class="w-full max-w-md mx-auto h-[100dvh] bg-gray-50 flex flex-col relative shadow-2xl shadow-gray-200/50 sm:border-x sm:border-gray-200">
         
-        <!-- 사이드바 메뉴 리스트 (JS로 동적 렌더링) -->
-        <div class="flex-1 overflow-y-auto py-4" id="menuContainer">
-            <!-- Menu items will be generated here -->
-        </div>
-    </aside>
-
-    <!-- 오른쪽 메인 콘텐츠 영역 -->
-    <main class="flex-1 flex flex-col h-full relative min-w-0">
-        
-        <!-- 상단 앱 헤더 -->
-        <header class="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md z-20">
-            <div class="flex items-center">
-                <!-- 햄버거 메뉴 버튼 (모바일에서만 보임) -->
-                <button onclick="toggleSidebar()" class="md:hidden mr-4 text-white hover:text-blue-200 transition">
-                    <i class="fa-solid fa-bars text-xl"></i>
-                </button>
-                <div>
-                    <!-- 현재 선택된 교재와 단원 이름 -->
-                    <h2 id="currentLessonTitle" class="text-lg font-bold">학습할 단원을 선택하세요</h2>
-                    <p id="currentBookTitle" class="text-xs text-blue-200 mt-0.5">왼쪽 메뉴를 열어주세요</p>
-                </div>
-            </div>
-            <!-- 카드 모드 전환 버튼 (기본은 숨김 처리) -->
-            <button onclick="toggleFlashcardMode()" id="modeToggleBtn" class="bg-blue-800 bg-opacity-50 text-white px-3 py-1.5 rounded-full text-sm font-semibold shadow-sm hover:bg-blue-700 transition hidden">
-                <i class="fa-solid fa-clone mr-1"></i> 카드모드
-            </button>
+        <!-- Top Bar -->
+        <header class="bg-white pt-10 pb-4 px-6 rounded-b-3xl shadow-sm z-20 relative shrink-0">
+            <h1 class="text-2xl font-black text-indigo-900 text-center tracking-tight">VocaMaster</h1>
+            <p class="text-xs text-gray-400 text-center mt-1">어원으로 끝내는 중학영단어</p>
         </header>
 
-        <!-- 리스트 뷰 영역 (메인 화면) -->
-        <div id="listView" class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 space-y-4 pb-24">
-            <!-- 초기 안내 화면 -->
-            <div class="flex flex-col items-center justify-center h-full text-slate-400">
-                <i class="fa-solid fa-book-open text-6xl mb-4 text-slate-200"></i>
-                <p class="font-medium text-lg">왼쪽 메뉴에서 학습할 단원을 선택해주세요.</p>
-            </div>
-        </div>
+        <!-- Main Content Area -->
+        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar relative w-full"></main>
 
-        <!-- 플래시카드 뷰 영역 (기본 숨김) -->
-        <div id="flashcardView" class="hidden absolute inset-0 bg-slate-900 bg-opacity-95 z-30 flex-col pb-10 pt-16">
-            <!-- 플래시카드 상단 헤더 -->
-            <div class="flex justify-between items-center px-6 pb-4 text-white">
-                <span id="flashcardCounter" class="text-sm font-bold bg-slate-800 px-4 py-1.5 rounded-full border border-slate-600 text-blue-300 shadow-inner">0 / 0</span>
-                <button onclick="toggleFlashcardMode()" class="text-slate-400 hover:text-white transition transform hover:rotate-90"><i class="fa-solid fa-xmark text-3xl"></i></button>
-            </div>
-
-            <!-- 카드 본체 -->
-            <div class="flex-1 flex items-center justify-center p-6 w-full perspective-1000">
-                <div id="flashcard" class="w-full h-[65vh] max-w-sm relative transform-style-3d flip-card-inner cursor-pointer" onclick="flipCard()">
-                    
-                    <!-- 앞면 (단어) -->
-                    <div class="absolute inset-0 w-full h-full bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] backface-hidden flex flex-col justify-center items-center p-8 text-center border-b-8 border-blue-500">
-                        <span id="cardGroup" class="absolute top-6 text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full">그룹</span>
-                        <h2 id="cardWord" class="text-4xl font-black text-slate-800 mb-4 tracking-tight break-words">Word</h2>
-                        <p class="text-slate-400 text-sm mt-8 font-semibold animate-pulse"><i class="fa-solid fa-hand-pointer mr-2"></i>탭하여 뜻 확인</p>
-                    </div>
-
-                    <!-- 뒷면 (뜻, 어원) -->
-                    <div class="absolute inset-0 w-full h-full bg-slate-800 rounded-3xl shadow-2xl backface-hidden rotate-y-180 flex flex-col p-6 text-white overflow-y-auto border border-slate-700">
-                        <h2 id="cardWordBack" class="text-2xl font-bold mb-3 border-b border-slate-600 pb-2 text-blue-300">Word</h2>
-                        <p id="cardMeaning" class="text-xl font-black mb-6 text-white">의미</p>
-                        
-                        <div class="bg-slate-900 bg-opacity-80 rounded-xl p-4 shadow-inner">
-                            <p class="text-xs text-emerald-400 mb-2 font-bold uppercase tracking-wider"><i class="fa-solid fa-lightbulb mr-1"></i> 메타인지 어원</p>
-                            <p id="cardRoot" class="text-sm leading-relaxed text-slate-300 font-medium break-keep">어원 설명</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 네비게이션 버튼 (이전/다음) -->
-            <div class="flex justify-center items-center space-x-8 px-6 pb-4">
-                <button onclick="prevCard()" class="w-16 h-16 rounded-full bg-slate-700 text-white flex justify-center items-center active:bg-slate-600 hover:bg-slate-600 transition border border-slate-600 shadow-lg">
-                    <i class="fa-solid fa-chevron-left text-2xl"></i>
-                </button>
-                <button onclick="nextCard()" class="w-16 h-16 rounded-full bg-blue-600 text-white flex justify-center items-center active:bg-blue-500 hover:bg-blue-500 transition shadow-[0_0_20px_rgba(37,99,235,0.4)] font-bold">
-                    <i class="fa-solid fa-chevron-right text-2xl"></i>
-                </button>
-            </div>
-        </div>
-    </main>
+        <!-- Bottom Navigation -->
+        <nav class="shrink-0 w-full bg-white border-t border-gray-200 flex rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50 pb-safe">
+            <button onclick="switchTab('study')" id="tab-study" class="tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-indigo-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                <span class="text-xs font-bold">학습</span>
+            </button>
+            <button onclick="switchTab('test')" id="tab-test" class="tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>
+                <span class="text-xs font-bold">테스트</span>
+            </button>
+        </nav>
+    </div>
 
     <script>
-        // -------------------------------------------------------------
-        // 통합 데이터베이스 (SPA 구조의 핵심)
-        // 교재명 -> 단원명 -> 단어 배열 형태로 데이터를 저장합니다.
-        // -------------------------------------------------------------
-        const database = {
-            "워마 중등실력": {
-                "Day 6 (음식/식재료)": [
-                    { word: "butter", meaning: "버터", root: "bou(소) + tyros(치즈) → 소젖으로 만든 지방", group: "기본 식재료" },
-                    { word: "pepper", meaning: "후추; 고추", root: "산스크리트어 pippali(산초)에서 유래. 과거엔 황금보다 비쌌음", group: "조미료/향신료" },
-                    { word: "salt", meaning: "소금", root: "라틴어 sal(소금). 로마 병사 월급(salary)의 어원", group: "조미료/향신료" },
-                    { word: "sugar", meaning: "설탕", root: "산스크리트어 sharkara(자갈)에서 달콤한 알갱이로 뜻 변화", group: "조미료/향신료" },
-                    { word: "eat out", meaning: "외식하다", root: "eat(먹다) + out(밖에서)", group: "식생활 구동사" },
-                    { word: "appetizer", meaning: "애피타이저, 식욕을 돋우는 것", root: "ad(~를 향해) + pet(구하다). 식욕(appetite)을 자극하는 것", group: "식사 구성" },
-                    { word: "grab", meaning: "간단히 먹다; 잡다", root: "손으로 덥석 쥐다 → 음식을 빠르게 움켜쥐고 먹다", group: "식생활 구동사" },
-                    { word: "egg", meaning: "달걀", root: "고대 노르드어 egg", group: "기본 식재료" },
-                    { word: "bread", meaning: "빵", root: "breowan(양조하다, 발효시키다)에서 유래", group: "기본 식재료" },
-                    { word: "meal", meaning: "식사", root: "mæl(정해진 시간) → 정해진 시간에 먹는 것", group: "식사 구성" },
-                    { word: "soup", meaning: "수프", root: "suppa(빵을 적셔 먹는 국물)", group: "요리 종류" },
-                    { word: "pork", meaning: "돼지고기", root: "porcus(돼지). 프랑스 귀족들이 쓰던 말에서 식용 고기로 정착", group: "육류/해산물" },
-                    { word: "beef", meaning: "소고기", root: "bovem(소). 프랑스어 boeuf에서 영어로 유입", group: "육류/해산물" },
-                    { word: "meat", meaning: "고기", 매: "고기", root: "고대 영어 mete는 원래 '모든 음식'을 뜻했으나, 점차 고기로 축소됨", group: "육류/해산물" },
-                    { word: "fish", meaning: "생선", root: "piscis(물고기)", group: "육류/해산물" },
-                    { word: "cereal", meaning: "시리얼; 곡물의", root: "로마 농업의 여신 'Ceres(세레스)'에서 유래", group: "곡물/가공식품" },
-                    { word: "jam", meaning: "잼", root: "꽉 누르다(jam) → 과일을 꽉 눌러 으깨서 만든 것", group: "곡물/가공식품" },
-                    { word: "pickle", meaning: "피클; 절이다", root: "네덜란드어 pekel(소금물)", group: "요리 종류" },
-                    { word: "stew", meaning: "스튜, 찌개", root: "stufa(목욕탕, 난로) → 따뜻한 난로 위에서 끓인 요리", group: "요리 종류" },
-                    { word: "honey", meaning: "꿀", root: "고대 영어 hunig", group: "조미료/향신료" },
-                    { word: "noodle", meaning: "국수", root: "독일어 Nudel에서 유래", group: "곡물/가공식품" },
-                    { word: "rice", meaning: "밥, 쌀", root: "그리스어 oruza", group: "기본 식재료" },
-                    { word: "steak", meaning: "스테이크", root: "고대 노르드어 steik(막대기에 꽂아 굽는 고기)", group: "요리 종류" },
-                    { word: "powder", meaning: "가루", root: "pulvis(먼지) → 미세하게 부서진 가루", group: "식재료 형태" },
-                    { word: "snack", meaning: "간식", root: "snacken(덥석 물다) → 가볍게 베어 무는 음식", group: "식사 구성" },
-                    { word: "side dish", meaning: "반찬", root: "side(옆) + dish(접시) → 메인 요리 옆에 두는 접시", group: "식사 구성" },
-                    { word: "diet", meaning: "다이어트, 식이요법", root: "diaita(생활 방식) → 일상적인 식습관", group: "식사 구성" },
-                    { word: "flour", meaning: "밀가루", root: "flower(꽃)와 어원이 같음. 밀의 '가장 좋은(꽃다운)' 부분을 빻아 만든 것", group: "식재료 형태" },
-                    { word: "set the table", meaning: "식탁을 차리다", root: "set(배치하다) + table(식탁)", group: "식생활 구동사" },
-                    { word: "mustard", 매: "겨자", meaning: "겨자", root: "must(포도즙)에 겨자씨를 섞어 만들던 것에서 유래", group: "조미료/향신료" }
-                ],
-                "Day 7 (주방/요리도구)": [
-                    { word: "pot", meaning: "(속이 깊은) 냄비", root: "둥글고 우묵한 그릇을 뜻함", group: "조리 도구" },
-                    { word: "pan", meaning: "(납작한) 냄비, 팬", root: "patina(얕은 접시)", group: "조리 도구" },
-                    { word: "roll", meaning: "밀다", root: "rota(바퀴) → 둥글게 굴려서 반죽을 펴다", group: "조리 동작" },
-                    { word: "fry", meaning: "튀기다", root: "frigere(볶다, 굽다)", group: "조리 동작" },
-                    { word: "grill", meaning: "(열로) 굽다, 익히다", root: "cratis(격자무늬) → 석쇠 자국을 내며 굽다", group: "조리 동작" },
-                    { word: "bake", meaning: "굽다", root: "bacan(열로 데우다) → 빵을 오븐에 굽다", group: "조리 동작" },
-                    { word: "pour", meaning: "붓다", root: "액체를 쏟아 붓는 동작", group: "조리 동작" },
-                    { word: "tray", meaning: "쟁반", root: "고대 영어 treow(나무) → 나무로 만든 편평한 판", group: "식기류" },
-                    { word: "glass", meaning: "유리잔, 한 컵", root: "유리 재질로 만든 컵", group: "식기류" },
-                    { word: "plate", meaning: "접시", root: "plat(편평한) → 납작한 그릇", group: "식기류" },
-                    { word: "bowl", meaning: "(우묵한) 그릇", root: "bulla(둥근 것)", group: "식기류" },
-                    { word: "blender", meaning: "믹서기", root: "blend(섞다) + er(~기계)", group: "주방 가전" },
-                    { word: "cabinet", meaning: "진열대", root: "cabin(작은 오두막/방) + et(작은) → 물건을 수납하는 작은 공간", group: "가구/수납" },
-                    { word: "refrigerator", meaning: "냉장고", root: "re(다시) + frigus(추위) → 계속 차갑게 유지하는 기계", group: "주방 가전" },
-                    { word: "recipe", meaning: "요리법", root: "recipere(받다) → 의사의 '처방전'에서 요리법으로 뜻 변경", group: "요리 개념" },
-                    { word: "keep on ~ing", meaning: "계속 ~하다", root: "keep(유지하다) + on(계속) + ~ing", group: "구동사" },
-                    { word: "be used for", meaning: "~에 사용되다", root: "use(사용하다)의 수동태", group: "구동사" },
-                    { word: "steam", meaning: "찌다", root: "뜨거운 수증기로 요리하다", group: "조리 동작" },
-                    { word: "boil", meaning: "끓이다", root: "bulla(거품) → 물이 끓어 거품이 올라오는 모양", group: "조리 동작" },
-                    { word: "scoop", meaning: "주걱, 국자; 퍼내다", root: "scopa(삽)에서 유래", group: "조리 도구" },
-                    { word: "knife", meaning: "칼", root: "고대 노르드어 knifr", group: "조리 도구" },
-                    { word: "slice", meaning: "얇게 썰다", root: "slit(베다)에서 유래", group: "조리 동작" },
-                    { word: "chop", meaning: "썰다, 다지다", root: "도끼로 나무를 패듯 탕탕 내리쳐서 자르다", group: "조리 동작" },
-                    { word: "beat", meaning: "휘저어 섞다", root: "두드리다, 때리다 → 계란 등을 강하게 휘젓다", group: "조리 동작" },
-                    { word: "kettle", meaning: "주전자", root: "catinus(깊은 그릇)", group: "조리 도구" },
-                    { word: "jar", meaning: "(입구가 넓은) 병, 단지", root: "아랍어 jarrah(흙으로 빚은 물통)", group: "가구/수납" },
-                    { word: "basket", meaning: "바구니", root: "갈대나 나뭇가지로 엮은 통", group: "가구/수납" },
-                    { word: "opener", meaning: "따개", root: "open(열다) + er(도구)", group: "조리 도구" },
-                    { word: "handle", meaning: "손잡이", root: "hand(손) + le(도구) → 손으로 잡는 부분", group: "요리 개념" },
-                    { word: "lid", meaning: "뚜껑", root: "덮어서 가리는 것", group: "요리 개념" }
-                ],
-                "Day 8 (집/가구/생활)": [
-                    { word: "tap", meaning: "수도꼭지", root: "통에 구멍을 뚫고 꽂은 '마개'에서 물이 나오는 관으로 의미 확장", group: "집 구조설비" },
-                    { word: "sink", meaning: "싱크대, 개수대", root: "물이 가라앉아(sink) 배수구로 빠져나가는 곳", group: "집 구조설비" },
-                    { word: "bathroom", meaning: "욕실", root: "bath(목욕) + room(방)", group: "방/공간" },
-                    { word: "bedroom", meaning: "침실", root: "bed(침대) + room(방)", group: "방/공간" },
-                    { word: "garage", meaning: "차고", root: "garer(보호하다) → 차를 날씨로부터 보호하는 곳", group: "방/공간" },
-                    { word: "garden", meaning: "정원", root: "yard(울타리 친 곳)와 어원이 같음", group: "방/공간" },
-                    { word: "yard", meaning: "마당", root: "geard(둘러싸인 뜰)", group: "방/공간" },
-                    { word: "roof", meaning: "지붕", root: "건물의 맨 꼭대기 덮개", group: "집 구조설비" },
-                    { word: "ceiling", meaning: "천장", root: "caelum(하늘) → 방 안의 하늘", group: "집 구조설비" },
-                    { word: "floor", meaning: "마루, 층", root: "꽃(flower)의 어원과 같음. 곡식을 터는 '평평한 바닥'에서 유래", group: "집 구조설비" },
-                    { word: "stair", meaning: "계단", root: "stigan(오르다)에서 유래", group: "집 구조설비" },
-                    { word: "gate", meaning: "문", root: "gap(틈) → 울타리를 열어 만든 틈새", group: "집 구조설비" },
-                    { word: "turn on", meaning: "켜다", root: "turn(돌리다). 옛날엔 밸브를 '돌려서' 전기/가스를 켰음", group: "생활 구동사" },
-                    { word: "knock", meaning: "노크를 하다", root: "의성어 '똑똑' 치는 소리", group: "생활 구동사" },
-                    { word: "apartment", meaning: "아파트", root: "a(따로) + part(나누다) → 한 건물을 여러 세대로 나눈 것", group: "주거 형태" },
-                    { word: "neighbor", meaning: "이웃", root: "neah(가까운) + gebur(농부) → 가까이 사는 사람", group: "주거 형태" },
-                    { word: "in place", meaning: "제자리에", root: "원래 있어야 할 정확한 장소(place)에", group: "생활 구동사" },
-                    { word: "scale", meaning: "체중계, 저울", root: "scala(사다리) → 눈금이 사다리처럼 생긴 것", group: "가구/소품" },
-                    { word: "mirror", meaning: "거울", root: "mirari(놀라다) → 비치는 모습을 보고 감탄하다", group: "가구/소품" },
-                    { word: "curtain", meaning: "커튼", root: "cortina(둥근 덮개)", group: "가구/소품" },
-                    { word: "shelf", meaning: "선반", root: "벽에 튀어나오게 설치한 판자", group: "가구/소품" },
-                    { word: "drawer", meaning: "서랍", root: "draw(끌어당기다) + er → 손으로 쓱 끌어당겨 여는 통", group: "가구/소품" },
-                    { word: "lamp", meaning: "전기스탠드", root: "lampein(빛나다)", group: "가구/소품" },
-                    { word: "soap", meaning: "비누", root: "고대 게르만어 saipon", group: "생활 용품" },
-                    { word: "towel", meaning: "타월", root: "물을 닦아내는 천", group: "생활 용품" },
-                    { word: "sheet", meaning: "시트, 홑이불", root: "넓게 펼쳐진 얇은 천이나 종이", group: "생활 용품" },
-                    { word: "laundry", meaning: "세탁물", root: "lavare(씻다)에서 파생", group: "생활 용품" },
-                    { word: "water", meaning: "물; 물을 주다", root: "가장 기본적인 생명의 원천", group: "생활 용품" },
-                    { word: "feed", meaning: "먹이를 주다", root: "food(음식)의 동사형", group: "생활 구동사" },
-                    { word: "lawn", meaning: "잔디", root: "launde(숲 속의 빈터)에서 인공적으로 풀을 깎아 만든 마당으로 변함", group: "방/공간" }
-                ],
-                "Day 9 (교통/도로)": [
-                    { word: "get on", meaning: "승차하다", root: "탈것 '위(on)'로 발을 딛고 올라가다", group: "교통 구동사" },
-                    { word: "transfer", meaning: "환승하다", root: "trans(가로질러) + fer(나르다) → 다른 노선으로 넘어가다", group: "교통 구동사" },
-                    { word: "drive", meaning: "운전하다", root: "원래 동물을 '몰다'에서 자동차를 조종하다로 뜻 변경", group: "교통 구동사" },
-                    { word: "park", meaning: "주차하다; 공원", root: "울타리 쳐진 구역(공원) → 마차를 '정해진 구역에 세워두다'로 의미 확장", group: "교통 구동사" },
-                    { word: "cross", meaning: "건너다; 십자가", root: "가로질러 십자(X) 형태로 지나가다", group: "교통 구동사" },
-                    { word: "crash", meaning: "충돌하다", root: "와장창 부딪히는 소리에서 유래한 의성어", group: "교통 구동사" },
-                    { word: "limit", meaning: "제한하다; 한계", root: "limes(경계선) → 속도나 구역의 선을 긋다", group: "교통 구동사" },
-                    { word: "transport", meaning: "수송하다", root: "trans(가로질러) + port(항구/나르다)", group: "교통 구동사" },
-                    { word: "on foot", meaning: "도보로", root: "발(foot) 위에(on) 체중을 싣고 걷다", group: "교통 구동사" },
-                    { word: "forward", meaning: "앞으로", root: "fore(앞) + ward(방향)", group: "방향/경로" },
-                    { word: "straight", meaning: "직선으로", root: "stretch(늘리다)에서 유래. 팽팽하게 당겨진 선처럼 곧은", group: "방향/경로" },
-                    { word: "left", meaning: "왼쪽", root: "고대 영어 lyft(약한) → 오른손잡이가 많아 왼손을 '약한 손'이라 부름", group: "방향/경로" },
-                    { word: "direction", meaning: "방향", root: "di(분리) + rect(똑바른) → 똑바로 가리키는 쪽", group: "방향/경로" },
-                    { word: "curve", meaning: "커브, 굽이", root: "curvus(굽은)", group: "방향/경로" },
-                    { word: "route", meaning: "노선, 경로", root: "rupt(부수다) → 숲을 헤치고 부수어 만든 길", group: "도로 시설" },
-                    { word: "road", meaning: "도로", root: "ride(타다) → 말을 타고 지나가는 길", group: "도로 시설" },
-                    { word: "track", meaning: "선로, 궤도", root: "수레바퀴가 지나가며 남긴 '자국'", group: "도로 시설" },
-                    { word: "platform", meaning: "승강장", root: "plat(평평한) + form(형태) → 열차를 타기 위해 평평하게 돋운 단", group: "도로 시설" },
-                    { word: "station", meaning: "역, 정거장", root: "stare(서다) → 마차가 잠시 멈춰 서는 곳", group: "도로 시설" },
-                    { word: "harbor", meaning: "항구", root: "here(군대) + beorg(은신처) → 원래 군함이 숨는 피난처", group: "도로 시설" },
-                    { word: "subway", meaning: "지하철", root: "sub(아래에) + way(길)", group: "수단 및 구성요소" },
-                    { word: "bicycle", meaning: "자전거", root: "bi(두 개) + cycle(바퀴)", group: "수단 및 구성요소" },
-                    { word: "wheel", meaning: "바퀴", root: "둥글게 굴러가는 원형 물체", group: "수단 및 구성요소" },
-                    { word: "seat", meaning: "좌석", root: "sit(앉다)의 명사형", group: "수단 및 구성요소" },
-                    { word: "traffic", meaning: "교통(량)", root: "trans(가로질러) + fic(하다) → 사람과 차가 오고 감", group: "교통 일반" },
-                    { word: "passenger", meaning: "승객", root: "passage(통과) + er → 지나가는 사람, 나그네", group: "교통 일반" },
-                    { word: "fare", meaning: "요금", root: "faran(여행하다) → 여행할 때 내는 돈", group: "교통 일반" },
-                    { word: "sign", meaning: "표지판", root: "signum(표시) → 길을 안내하는 기호", group: "교통 일반" },
-                    { word: "license", meaning: "면허증", root: "licere(허락하다) → 운전할 수 있게 허락받은 증서", group: "교통 일반" },
-                    { word: "accident", meaning: "사고", root: "ad(쪽으로) + cadere(떨어지다) → 우연히 일어난 나쁜 일", group: "교통 일반" }
-                ],
-                "Day 10 (사무/문구류)": [
-                    { word: "company", meaning: "회사", root: "com(함께) + pan(빵) + y → 빵(이익)을 함께 나눠 먹는 무리", group: "장소/문서" },
-                    { word: "document", meaning: "문서, 서류", root: "docere(가르치다) → 증거로서 가르쳐주는 종이", group: "장소/문서" },
-                    { word: "letter", meaning: "편지; 글자", root: "글자(letter)를 모아서 쓴 종이가 편지", group: "장소/문서" },
-                    { word: "message", meaning: "메시지", root: "miss(보내다) + age → 누군가에게 보내는 내용", group: "장소/문서" },
-                    { word: "printout", meaning: "출력물", root: "print(인쇄) + out(밖으로) 나온 종이", group: "장소/문서" },
-                    { word: "room", meaning: "방, 실", root: "고대 영어 rum(공간, 여유)", group: "장소/문서" },
-                    { word: "stationery", meaning: "문구류", root: "station(한 자리에 서 있는 상인) → 예전엔 책/종이를 파는 고정된 상인을 뜻함", group: "사무 기기/문구" },
-                    { word: "printer", meaning: "프린터", root: "print(누르다) + er → 활자를 종이에 꾹 누르는 기계", group: "사무 기기/문구" },
-                    { word: "calculator", meaning: "계산기", root: "calculus(작은 돌) → 고대 로마인들이 조약돌로 셈을 하던 것에서 유래", group: "사무 기기/문구" },
-                    { word: "highlighter", meaning: "형광펜", root: "high(높게) + light(빛) → 눈에 띄게 빛나게 칠하는 펜", group: "사무 기기/문구" },
-                    { word: "eraser", meaning: "지우개", root: "e(밖으로) + rase(긁다) → 연필 자국을 박박 긁어 없애다", group: "사무 기기/문구" },
-                    { word: "scissors", meaning: "가위", root: "scindere(자르다). 날이 2개라서 항상 복수형(-s) 사용", group: "사무 기기/문구" },
-                    { word: "glue", meaning: "풀; 접착하다", root: "glus(아교, 접착제)", group: "사무 기기/문구" },
-                    { word: "pin", meaning: "핀; 핀으로 고정하다", root: "라틴어 pinna(뾰족한 깃털)", group: "사무 기기/문구" },
-                    { word: "clip", meaning: "클립; 자르다", root: "단단히 움켜쥐다(clip)에서 유래", group: "사무 기기/문구" },
-                    { word: "envelope", meaning: "봉투", root: "en(안에) + velop(싸다) → 편지를 안으로 감싸는 것", group: "사무 기기/문구" },
-                    { word: "folder", meaning: "서류철", root: "fold(접다) + er → 종이를 반으로 접어서 보관하는 것", group: "사무 기기/문구" },
-                    { word: "calendar", meaning: "달력", root: "calendae(로마력의 매월 첫날). 이자 갚는 날짜를 기록하던 장부에서 유래", group: "가구/소품" },
-                    { word: "bookcase", meaning: "책장", root: "book(책) + case(상자/보관함)", group: "가구/소품" },
-                    { word: "desk", meaning: "책상", root: "discus(원반, 판) → 납작한 판자 테이블", group: "가구/소품" },
-                    { word: "chair", meaning: "의자", root: "cathedra(주교의 의자, 권위 있는 자리)에서 유래", group: "가구/소품" },
-                    { word: "interview", meaning: "인터뷰, 면접", root: "inter(서로) + view(보다) → 마주 보고 평가하다", group: "사무실 행동" },
-                    { word: "manager", meaning: "관리자", root: "manus(손) → 말을 손으로 고삐 쥐어 '다루는' 사람", group: "사무실 행동" },
-                    { word: "deal with", meaning: "다루다, 처리하다", root: "deal(나누다, 거래하다) + with → 문제와 맞붙어 해결하다", group: "사무실 행동" },
-                    { word: "fill out", meaning: "작성하다, 기입하다", root: "fill(채우다) + out(끝까지) → 빈칸을 끝까지 모두 채우다", group: "사무실 행동" },
-                    { word: "call", meaning: "전화를 걸다", root: "소리쳐 부르다 → 전화선 너머로 부르다", group: "사무실 행동" },
-                    { word: "staple", meaning: "스테이플러로 고정하다", root: "원래는 기둥이나 버팀목을 뜻함. ㄷ자 모양의 쇠로 꽉 고정하다", group: "사무실 행동" },
-                    { word: "photocopy", meaning: "사진 복사하다", root: "photo(빛) + copy(복사) → 빛을 이용해 복사하다", group: "사무실 행동" },
-                    { word: "punch", meaning: "구멍을 뚫다", root: "뾰족한 도구로 찌르거나 주먹으로 치다", group: "사무실 행동" },
-                    { word: "seal", meaning: "도장; 날인하다", root: "sigillum(작은 조각상/도장). 편지를 밀랍으로 봉인하던 것", group: "사무실 행동" }
-                ],
-                "Day 11 (도시/장소/길찾기)": [
-                    { word: "intersection", meaning: "교차로", root: "inter(서로) + sect(자르다) → 두 도로가 가로질러 잘리는 곳", group: "도로 및 길" },
-                    { word: "highway", meaning: "고속도로", root: "high(높은) + way(길) → 평지보다 높게 돋워 만든 주요 도로", group: "도로 및 길" },
-                    { word: "street", meaning: "거리", root: "sternere(포장하다) → 돌로 평평하게 덮어 만든 길", group: "도로 및 길" },
-                    { word: "avenue", meaning: "대로, 넓은 길", root: "a(~로) + ven(오다) → 도시나 대저택으로 들어오는 큰 진입로", group: "도로 및 길" },
-                    { word: "sidewalk", meaning: "인도, 보도", root: "side(가장자리) + walk(걷다) → 찻길 옆 사람이 걷는 길", group: "도로 및 길" },
-                    { word: "crosswalk", meaning: "횡단보도", root: "cross(건너다) + walk(걷는 곳)", group: "도로 및 길" },
-                    { word: "corner", meaning: "모퉁이, 구석", root: "cornu(뿔) → 뿔처럼 툭 튀어나온 모서리 부분", group: "도로 및 길" },
-                    { word: "village", meaning: "마을, 촌락", root: "villa(시골 저택) 주변에 농부들이 모여 형성된 동네", group: "도시 및 장소" },
-                    { word: "building", meaning: "건물", root: "build(짓다) + ing", group: "도시 및 장소" },
-                    { word: "city hall", meaning: "시청", root: "도시(city)의 공무를 보는 넓은 회관(hall)", group: "도시 및 장소" },
-                    { word: "police station", meaning: "경찰서", root: "치안 유지를 위해 경찰(police)이 서 있는(station) 본부", group: "도시 및 장소" },
-                    { word: "fire station", meaning: "소방서", root: "화재(fire) 진압대가 상주하는 곳", group: "도시 및 장소" },
-                    { word: "hospital", meaning: "병원", root: "hospes(손님) → 원래는 여행자나 가난한 자를 돌보는 숙소에서 유래", group: "도시 및 장소" },
-                    { word: "museum", meaning: "박물관", root: "뮤즈(예술과 학문의 여신)를 모시는 신전에서 유래", group: "도시 및 장소" },
-                    { word: "bakery", meaning: "제과점", root: "bake(굽다) + ry(가게)", group: "도시 및 장소" },
-                    { word: "drugstore", meaning: "약국", root: "drug(약) + store(가게)", group: "도시 및 장소" },
-                    { word: "department store", meaning: "백화점", root: "물건을 여러 부서(department)로 나누어 파는 큰 상점", group: "도시 및 장소" },
-                    { word: "sewer", meaning: "하수구", root: "ex(밖으로) + aqua(물) → 더러운 물을 밖으로 빼내는 관", group: "기반 시설" },
-                    { word: "trash", meaning: "쓰레기", root: "나무의 잔가지나 버려진 잎사귀에서 유래", group: "기반 시설" },
-                    { word: "signal", meaning: "신호기", root: "sign(표시) → 길에서 가고 서는 것을 표시함", group: "기반 시설" },
-                    { word: "pedestrian", meaning: "보행자", root: "ped(발) + ian(사람) → 발로 걸어 다니는 사람", group: "기반 시설" },
-                    { word: "direction", meaning: "방향", root: "di(분리) + rect(똑바른) → 똑바로 가리키는 쪽", group: "길찾기/안내" },
-                    { word: "turn", meaning: "회전하다", root: "라틴어 tornare(둥글게 돌리다)", group: "길찾기/안내" },
-                    { word: "straight", meaning: "똑바로, 직선으로", root: "stretch(팽팽히 당기다) → 구부러지지 않은 상태", group: "길찾기/안내" },
-                    { word: "left", meaning: "왼쪽", root: "오른손잡이가 많아 왼손을 '약한 손(lyft)'이라 불렀음", group: "길찾기/안내" },
-                    { word: "in the middle of", meaning: "~의 중간에", root: "가운데(middle)에 위치한", group: "길찾기/안내" },
-                    { word: "block", meaning: "블록, 구획; 막다", root: "커다란 나무 덩어리 → 도로로 잘라 나눈 네모난 구역", group: "길찾기/안내" },
-                    { word: "be known for", meaning: "~로 유명하다", root: "특징 때문에 사람들에게 알려지다(known)", group: "장소 표현" },
-                    { word: "give ~ a ride", meaning: "~를 태워 주다", root: "자동차나 말 타는 것(ride)을 제공하다(give)", group: "장소 표현" },
-                    { word: "patrol", meaning: "순찰대, 순찰 경관", root: "patouiller(진흙탕을 걷다) → 밤낮으로 동네를 돌아다니며 지키다", group: "장소 표현" }
-                ]
+        const RAW_DATA = `6|butter|버터|고대 그리스어 boutyron(소+치즈)|bovine|[기본어휘] 음식
+6|pepper|후추; 고추|라틴어 piper(후추)|peppermint|[기본어휘] 음식
+6|eat out|외식하다|eat(먹다)+out(밖으로)|eat, out|[구동사]
+6|appetizer|애피타이저, 식욕을 돋우는 것|ad(방향)+petere(구하다)|appetite, petition|[어근] pet, petit (구하다, 찾다)
+6|grab|간단히 먹다; 잡다, 붙들다|게르만어 ghrebh(잡다)|grasp|[기본어휘] 행위
+6|egg|달걀|인도유럽어 owyo(새의 알)|oval|[기본어휘] 음식
+6|bread|빵|인도유럽어 bhreu(끓이다, 부풀다)|brew|[기본어휘] 음식
+6|meal|식사|인도유럽어 mela(갈다, 빻다)|mill|[기본어휘] 음식
+6|soup|수프|인도유럽어 seue(즙, 빨아들이다)|sup, supper|[기본어휘] 음식
+6|pork|돼지고기|라틴어 porcus(돼지)|porcupine|[기본어휘] 음식
+6|cereal|곡물 식품, 시리얼; 곡물의|라틴어 Ceres(농업의 여신)|-|[기본어휘] 음식
+6|jam|잼|어원 불분명 (짜내다/으깨다에서 유래)|-|[기본어휘] 음식
+6|pickle|(오이 등을) 절인 것, 피클; 절이다|네덜란드어 pekel(소금물)|-|[기본어휘] 음식
+6|stew|스튜, 찌개|고대 프랑스어 estuver(뜨거운 목욕)|-|[기본어휘] 음식
+6|honey|꿀|인도유럽어 kanko(황금빛)|-|[기본어휘] 음식
+6|noodle|국수|독일어 Nudel(국수)|-|[기본어휘] 음식
+6|rice|밥|고대 그리스어 oruza(쌀)|-|[기본어휘] 음식
+6|fish|생선|인도유럽어 pisk(물고기)|pisces|[기본어휘] 음식
+6|salt|소금|인도유럽어 sal(소금)|salad, salary|[어근] sal (소금)
+6|steak|스테이크|고대 노르스어 steik(굽다)|-|[기본어휘] 음식
+6|meat|고기|인도유럽어 mad(축축한, 음식)|-|[기본어휘] 음식
+6|powder|가루|라틴어 pulvis(먼지)|pulverize|[기본어휘] 음식
+6|sugar|설탕|산스크리트어 sharkara(자갈, 설탕)|-|[기본어휘] 음식
+6|snack|간식|네덜란드어 snakken(물어뜯다)|-|[기본어휘] 음식
+6|side dish|반찬, 주된 요리에 곁들이는 요리|side(옆)+dish(접시)|-|[기본어휘] 음식
+6|flour|밀가루|라틴어 flos(꽃, 가장 좋은 부분)|flower, floral|[어근] flos, flor (꽃)
+6|mustard|겨자|라틴어 mustum(새 포도주)|must|[기본어휘] 음식
+6|diet|다이어트, 식이요법|고대 그리스어 diaita(생활 방식)|dietary|[기본어휘] 건강
+6|set the table|식탁[밥상]을 차리다|set + table|-|[구동사]
+6|beef|소고기|라틴어 bos(소)|bovine|[기본어휘] 음식
+7|pot|(속이 깊은) 냄비|고대 영어 pott(깊은 그릇)|-|[기본어휘] 도구
+7|roll|밀다|라틴어 rotula(작은 바퀴)|rotate, round|[어근] rot, roll (구르다)
+7|fry|튀기다|라틴어 frigere(굽다)|-|[기본어휘] 행위
+7|tray|쟁반|고대 영어 trieg(나무 판)|tree|[기본어휘] 도구
+7|bake|굽다|인도유럽어 bhehg(따뜻하게 하다)|baker|[기본어휘] 행위
+7|blender|부엌용 믹서기|blend(섞다)+er(기구)|blend|[기본어휘] 도구
+7|cabinet|진열대|라틴어 cavea(새장, 방) + net|cabin, cage|[어근] cab, cap (작은 방, 잡다)
+7|recipe|요리법|re(다시)+capere(잡다, 취하다)|receive, capture|[어근] cap, cept (잡다, 취하다)
+7|keep on ~ing|계속 ~하다|keep + on + ing|-|[구동사]
+7|steam|찌다|고대 영어 steam(증기)|-|[기본어휘] 현상
+7|scoop|주걱, 국자|네덜란드어 schope(바가지)|-|[기본어휘] 도구
+7|boil|끓이다|라틴어 bullire(거품이 일다)|bullet, bubble|[어근] bull (둥근, 거품)
+7|pan|(납작한) 냄비, 팬|라틴어 patina(얕은 접시)|patina|[기본어휘] 도구
+7|grill|(열로) 굽다, 익히다|라틴어 craticula(작은 격자)|grate|[기본어휘] 도구
+7|pour|붓다|어원 불분명|-|[기본어휘] 행위
+7|glass|컵, 유리잔, 한 컵(의 양)|게르만어 glasa(빛나다)|glare, glow|[어근] gl (빛나다)
+7|be used for|~에 사용[이용]되다|be + used + for|-|[구동사]
+7|knife|칼|고대 영어 cnif(칼)|-|[기본어휘] 도구
+7|kettle|주전자|라틴어 catillus(깊은 냄비)|-|[기본어휘] 도구
+7|jar|(입구가 넓은) 병, 단지|아랍어 jarrah(물단지)|-|[기본어휘] 도구
+7|plate|접시|고대 프랑스어 plate(평평한)|platform|[어근] plat (평평한)
+7|bowl|(우묵한) 그릇, 통|라틴어 bulla(둥근 것)|boil|[어근] bull (둥근, 거품)
+7|slice|얇게 썰다|고대 프랑스어 esclicier(자르다)|slit|[어근] sect, slice (자르다)
+7|basket|바구니|라틴어 bascauda(그릇)|-|[기본어휘] 도구
+7|beat|휘저어 섞다|라틴어 battuere(치다)|battle, batter|[어근] bat (치다)
+7|handle|손잡이|hand(손)+le|hand|[어근] hand (손)
+7|lid|뚜껑|고대 영어 hlid(덮개)|-|[기본어휘] 도구
+7|opener|따개|open(열다)+er|open|[기본어휘] 도구
+7|refrigerator|냉장고|re(다시)+frigus(차갑다)|frigid, freeze|[어근] frig (차갑다)
+7|chop|썰다, 다지다|고대 프랑스어 choper(자르다)|-|[어근] cap, chop (자르다)
+8|tap|수도꼭지|고대 영어 tæppa(마개)|-|[기본어휘] 도구
+8|garden|정원; 정원을 가꾸다|게르만어 gardo(둘러싸인 곳)|yard, guard|[어근] gard, yard (둘러싸인 곳)
+8|sink|싱크대, 개수대|게르만어 senkwan(가라앉다)|-|[기본어휘] 도구
+8|turn on|(라디오, TV, 전기, 가스 등을) 켜다|turn(돌리다) + on|-|[구동사]
+8|apartment|아파트|a(로)+part(나누다)+ment|depart, part|[어근] part, port (나누다, 부분)
+8|scale|체중계, 저울|고대 노르스어 skal(그릇, 접시)|-|[기본어휘] 도구
+8|knock|노크를 하다, (문 등을) 두드리다|고대 영어 cnocian(치다)|-|[기본어휘] 행위
+8|neighbor|이웃(사람)|neah(가까운)+gebur(농부)|nigh, boor|[어근] bower, neigh (가까운 농부)
+8|roof|지붕|고대 영어 hrof(지붕)|-|[기본어휘] 건축
+8|soap|비누|게르만어 saipon(바르다)|-|[기본어휘] 생활용품
+8|drawer|서랍|draw(끌다)+er|draw, drag|[어근] tract, draw (끌다)
+8|floor|마루, 바닥; 층|인도유럽어 plaros(평평한)|flat|[어근] plat (평평한)
+8|curtain|커튼|라틴어 cortina(둥근 장막)|court|[기본어휘] 생활용품
+8|yard|마당|고대 영어 geard(둘러싸인 곳)|garden|[어근] gard, yard (둘러싸인 곳)
+8|shelf|선반|게르만어 skelf-(나누다)|-|[기본어휘] 가구
+8|bathroom|욕실|bath(목욕)+room(방)|-|[기본어휘] 공간
+8|feed|먹이를 주다|게르만어 fodijan(먹이다)|food|[어근] past, feed (먹이다)
+8|gate|문|게르만어 gatan(길, 구멍)|-|[기본어휘] 건축
+8|mirror|거울|라틴어 mirari(놀라다, 보다)|miracle, admire|[어근] mir (놀라다, 보다)
+8|in place|제자리에 (있는)|in + place|-|[구동사]
+8|stair|계단, 층계|게르만어 staigaz(오르다)|stand|[어근] sta, stit (서다, 멈추다)
+8|water|물; 물을 주다|인도유럽어 wod-or(물)|wash, wet|[기본어휘] 자연
+8|bedroom|침실|bed(침대)+room(방)|-|[기본어휘] 공간
+8|laundry|세탁물|라틴어 lavare(씻다)|lavatory, lavish|[어근] lav, lau (씻다)
+8|towel|타월, 수건|고대 프랑스어 toaille(씻다)|-|[기본어휘] 생활용품
+8|lawn|잔디|고대 프랑스어 launde(숲속 빈터)|-|[기본어휘] 자연
+8|ceiling|천장|라틴어 caelum(하늘)|celestial|[어근] cel (하늘)
+8|sheet|시트, 홑이불|고대 영어 sceat(모서리, 천)|-|[기본어휘] 생활용품
+8|garage|차고|프랑스어 garer(보호하다)|garrison, guard|[어근] gard, yard (둘러싸인 곳)
+8|lamp|전기스탠드, 램프|그리스어 lampein(빛나다)|lantern|[어근] lamp, luc (빛나다)
+9|get on|(탈것에) 타다, 승차하다|get + on|-|[구동사]
+9|platform|(역의) 플랫폼, 승강장|plat(평평한)+form(형태)|plate, uniform|[어근] plat (평평한)
+9|traffic|교통(량); 교통의|trans(가로질러)+facere(만들다/가다)|transfer|[어근] tract, trans (이동하다)
+9|rail|철로|라틴어 regula(막대기)|rule|[기본어휘] 교통
+9|harbor|항구|here(군대)+beorg(피난처)|-|[어근] here, harbor (보호처)
+9|on foot|걸어서, 도보로|on + foot|-|[구동사]
+9|route|길, 경로, 루트; (버스, 기차 등의) 노선|라틴어 rupta(부서진 길)|routine, rupture|[어근] rupt, route (깨다, 길)
+9|road|길, 도로|고대 영어 rad(타기, 여정)|ride|[어근] rid, road (타다, 길)
+9|passenger|승객|pass(통과하다)+enger|pass, passport|[어근] pass, pati (통과하다, 겪다)
+9|seat|좌석|인도유럽어 sed(앉다)|sit, session|[어근] sed, sess (앉다)
+9|subway|지하철|sub(아래)+way(길)|submarine|[어근] sub (아래에)
+9|sign|표지(판); 서명하다|라틴어 signum(표시)|signal, signature|[어근] sign (표시하다)
+9|crash|충돌; 충돌하다|의성어 (부딪히는 소리)|clash|[기본어휘] 현상
+9|stop|정류장; 정차하다, 그만두다|라틴어 stuppa(막다)|stuff|[어근] sta, stit (서다, 멈추다)
+9|transport|수송하다, 운송하다|trans(가로질러)+port(나르다)|passport, export|[어근] port (나르다, 항구)
+9|drive|운전하다|게르만어 dribanan(밀다)|drift|[기본어휘] 행위
+9|transfer|옮기다; 환승하다|trans(가로질러)+fer(나르다)|refer, prefer|[어근] fer (나르다, 운반하다)
+9|park|주차하다; 공원|게르만어 parruk(울타리 친 곳)|-|[기본어휘] 장소
+9|track|철도 선로, 궤도|게르만어 trekanan(끌다)|tractor|[어근] tract, trans (이동하다)
+9|wheel|바퀴|인도유럽어 kwekwlo(원, 바퀴)|cycle|[어근] cycl (원, 바퀴)
+9|cross|~을 건너다; 십자가|라틴어 crux(십자가)|crucial, cruise|[어근] cross, crux (교차하다)
+9|limit|한계, 제한; 제한하다|라틴어 limes(경계)|eliminate|[어근] limin, limit (경계)
+9|station|역, 정거장; (관공)서, 국|라틴어 statio(서 있는 곳)|stand, state|[어근] sta, stit (서다, 멈추다)
+9|license|면허증|라틴어 licere(허락되다)|leisure|[어근] lic (허락하다)
+9|bicycle|자전거|bi(둘)+cycle(바퀴)|cycle, recycle|[어근] cycl (원, 바퀴)
+9|gas|휘발유, 가솔린|그리스어 chaos(혼돈)에서 유래|chaos|[어근] chaos, gas (기체)
+9|accident|사고|ad(로)+cidere(떨어지다)|incident, casual|[어근] cid, cas (떨어지다, 일어나다)
+9|fare|요금|고대 영어 faran(가다, 여행하다)|ferry, farewell|[어근] fare, port (가다, 요금)
+9|curve|굽이, 커브, 굴곡; 구부러지다|라틴어 curvare(굽다)|curvature|[어근] curv (굽다)
+9|forward|앞으로, 앞을 향하여|forth(앞으로)+ward(방향)|backward|[어근] ward (방향)
+10|highlighter|형광 컬러 펜|high(높은)+light(빛)+er|highlight|[어근] lamp, luc (빛나다)
+10|calendar|달력|라틴어 calendae(달의 첫날)|-|[기본어휘] 생활도구
+10|staple|스테이플러로 고정시키다|게르만어 stapal(기둥)|-|[기본어휘] 도구
+10|photocopy|사진 복사물; 사진 복사하다|photo(빛)+copy(복사)|photograph|[어근] photo (빛)
+10|scissors|가위|라틴어 caedere(자르다)|decide, slice|[어근] sect, slice (자르다)
+10|bookcase|책장, 책꽂이|book(책)+case(상자)|-|[기본어휘] 가구
+10|punch|(표에 구멍을 뚫는) 펀치; 구멍을 뚫다|라틴어 pungere(찌르다)|puncture|[기본어휘] 행위
+10|printout|출력물|print(누르다)+out|-|[어근] press, print (누르다)
+10|interview|면접을 보다, 인터뷰를 하다; 면접, 인터뷰|inter(서로)+view(보다)|review, vision|[어근] vis, vid, view (보다)
+10|call|통화; 전화를 걸다|고대 노르스어 kalla(외치다)|-|[기본어휘] 행위
+10|envelope|봉투|en(안으로)+velop(싸다)|develop|[어근] volup, velop (싸다)
+10|deal with|~을 다루다, 처리하다|deal + with|-|[구동사]
+10|message|메시지|라틴어 mittere(보내다)|mission, admit|[어근] mit, miss (보내다)
+10|company|회사|com(함께)+pan(빵)+y|accompany, pan|[어근] pan (빵)
+10|letter|편지|라틴어 littera(글자)|literal, literature|[어근] liter (글자)
+10|eraser|지우개|e(밖으로)+raser(긁다)|erase|[어근] ras, rad (긁다, 지우다)
+10|stationery|문구류|stationer(서적상)+y|station|[어근] sta, stit (서다, 멈추다)
+10|glue|풀; 풀을 바르다, 접착하다|라틴어 gluten(접착제)|gluten|[기본어휘] 도구
+10|printer|인쇄기, 프린터|print(누르다)+er|press|[어근] press, print (누르다)
+10|document|서류, 문서|라틴어 docere(가르치다)|doctor, doctrine|[어근] doc (가르치다)
+10|room|방, 실|게르만어 rum(공간)|-|[기본어휘] 공간
+10|pin|핀; 핀으로 고정하다|라틴어 pinna(깃털, 뾰족한 것)|pen|[기본어휘] 도구
+10|fill out|~을 작성하다, 기입하다|fill + out|-|[구동사]
+10|calculator|계산기|라틴어 calculus(조약돌)+or|calculate|[어근] calc (돌, 계산하다)
+10|clip|클립; 자르다, 깎다|게르만어 klippan(꽉 쥐다)|-|[기본어휘] 도구
+10|chair|의자|그리스어 cathedra(의자)|cathedral|[어근] sed, sess (앉다)
+10|folder|폴더, 서류철|fold(접다)+er|-|[기본어휘] 도구
+10|manager|관리자|라틴어 manus(손)|manual, manage|[어근] man, manu (손)
+10|desk|책상|라틴어 discus(원반, 탁자)|disc, dish|[어근] disc, desk (원반, 책상)
+10|seal|도장, 인감, 봉인; 날인하다, 봉하다|라틴어 signum(표시)|sign, signal|[어근] sign (표시하다)
+11|intersection|교차로|inter(사이에)+sect(자르다)+ion|section, insect|[어근] sect, slice (자르다)
+11|village|(시골) 마을, 촌락|라틴어 villa(시골집)|villa, villain|[어근] vill (집, 마을)
+11|bakery|제과점|bake(굽다)+ery|baker|[기본어휘] 시설
+11|signal|신호, 신호기|라틴어 signum(표시)|sign, signature|[어근] sign (표시하다)
+11|street|거리|라틴어 strata(포장된 길)|stratum|[어근] sta, stit (서다, 멈추다)
+11|sidewalk|인도, 보도|side(옆)+walk(걷다)|-|[기본어휘] 길
+11|be known for|~로 알려져 있다, ~로 유명하다|be + known + for|-|[구동사]
+11|block|(도로의) 블록, 구획; 덩어리, 장애물; 막다, 봉쇄하다|게르만어 blok(통나무)|-|[기본어휘] 장소/행위
+11|drugstore|약국|drug(약)+store(상점)|-|[기본어휘] 시설
+11|fire station|소방서|fire + station(서 있는 곳)|station|[어근] sta, stit (서다, 멈추다)
+11|patrol|순찰대, 순찰 경관|프랑스어 patouiller(진흙길을 걷다)|pedal|[어근] ped (발)
+11|in the middle of|~의 중간[중앙]에, ~의 도중에|in + the + middle + of|-|[구동사]
+11|highway|고속도로|high(높은)+way(길)|-|[기본어휘] 도로
+11|give ~ a ride|...를 태워 주다|give + a + ride|-|[구동사]
+11|city hall|시청|city + hall|-|[기본어휘] 시설
+11|avenue|도시의 큰 대로, 넓은 길|ad(로)+venire(오다)|venue, prevent|[어근] ven, vent (오다)
+11|building|건물|build(짓다)+ing|-|[기본어휘] 건축
+11|hospital|병원|라틴어 hospes(손님)|host, hotel|[어근] hosp, host (손님)
+11|sewer|하수구|ex(밖으로)+aqua(물)|water|[기본어휘] 건축/시설
+11|museum|박물관|그리스어 mouseion(뮤즈의 신전)|music|[어근] mus (예술, 음악)
+11|trash|쓰레기|게르만어 (나뭇가지 등에서 유래)|-|[기본어휘] 상태/환경
+11|corner|모퉁이, 구석|라틴어 cornu(뿔, 끝)|corn|[어근] corn (뿔, 모서리)
+11|department store|백화점|de(떨어져)+part(나누다) + store|part, depart|[어근] part, port (나누다, 부분)
+11|crosswalk|횡단보도|cross(교차)+walk(걷다)|crucial|[어근] cross, crux (교차하다)
+11|left|왼쪽|게르만어 (약한, 쓸모없는)|-|[기본어휘] 방향
+11|direction|방향|dis(분리)+regere(똑바르게 하다)|direct, correct|[어근] rect, reg (똑바른, 다스리다)
+11|pedestrian|보행자|라틴어 pes(발)|pedal, patrol|[어근] ped (발)
+11|police station|경찰서|police + station(서 있는 곳)|state|[어근] sta, stit (서다, 멈추다)
+11|turn|회전; 방향 전환; 돌다|라틴어 tornare(돌리다)|tornado, tour|[어근] tour, turn (돌다)
+11|straight|똑바른, 직선의; 곧장, 일직선으로|라틴어 stringere(팽팽하게 묶다)|strict, stretch|[어근] rect, reg (똑바른, 다스리다)
+12|outlet|(전기) 콘센트; 출구, 배출구|out(밖으로)+let(보내다)|let|[어근] out (밖으로)
+12|dust|먼지, 티끌; 먼지를 털다|인도유럽어 dheu(날다, 연기)|-|[기본어휘] 자연/현상
+12|housework|가사, 집안일|house(집)+work(일)|-|[기본어휘] 활동
+12|clean up|치우다, 청소하다|clean + up|-|[구동사]
+12|rake|갈퀴; 긁어모으다|고대 영어 raca(긁어모으는 도구)|-|[기본어휘] 도구
+12|ladder|사다리|고대 영어 hlæder(사다리)|-|[기본어휘] 도구
+12|wash|세탁물; 씻다|고대 영어 wæscan(씻다)|water|[기본어휘] 행위
+12|fold|개다, 접다|게르만어 falthan(접다)|folder|[기본어휘] 행위
+12|saw|톱; 톱질하다|게르만어 sago(자르는 도구)|-|[기본어휘] 도구
+12|polish|닦다, 윤을 내다|라틴어 polire(부드럽게 하다)|polite|[어근] pol (닦다)
+12|wrench|렌치(너트를 죄는 기구)|고대 영어 wrencan(비틀다)|-|[기본어휘] 도구
+12|set up|세우다, 설치[설립]하다|set + up|-|[구동사]
+12|iron|다리미; 철; 다림질하다|게르만어 isarnan(강한 금속)|-|[기본어휘] 도구/물질
+12|hammer|망치|게르만어 hamaraz(돌, 망치)|-|[기본어휘] 도구
+12|carry|나르다|라틴어 carrum(수레)|car, career|[어근] car (수레, 달리다)
+12|flashlight|손전등|flash(번쩍임)+light(빛)|flash, light|[기본어휘] 도구
+12|hang|걸다, 매달리다|게르만어 hanganan(매달다)|-|[기본어휘] 행위
+12|sweep|청소하다, 쓸다|게르만어 swaipanan(쓸다)|swoop|[기본어휘] 행위
+12|lift|올리다, 들어올리다|고대 노르스어 lypta(공기 중으로 올리다)|loft|[어근] lev (가벼운, 올리다)
+12|trim|깎아 다듬다|고대 영어 trymian(강하게 하다, 배열하다)|-|[기본어휘] 행위
+12|drill|송곳; 구멍을 뚫다|네덜란드어 drillen(돌다, 구멍뚫다)|-|[기본어휘] 도구/행위
+12|daily|매일의, 나날의|day(날)+ly|day|[기본어휘] 시간
+12|screw|나사; 나사로 죄다, 비틀다|고대 프랑스어 escroe(나사)|-|[기본어휘] 도구/행위
+12|bucket|물통, 양동이|고대 프랑스어 buket(배부른 통)|-|[기본어휘] 도구
+12|tool|도구, 연장|게르만어 towam(만들다, 준비하다)|-|[기본어휘] 도구
+12|mop|대걸레; 대걸레로 닦다|어원 불분명 (헝겊 뭉치)|-|[기본어휘] 도구/행위
+12|dig|파다, 파헤치다|고대 프랑스어 diguer(파다)|ditch|[기본어휘] 행위
+12|shovel|삽|게르만어 skublon(밀다)|shove|[기본어휘] 도구
+12|broom|빗자루|게르만어 bramam(가시덤불)|bramble|[기본어휘] 도구
+12|switch|스위치|네덜란드어 swijse(회초리)|-|[기본어휘] 도구
+13|on sale|판매되는; 할인 중인|on + sale|-|[구동사]
+13|can|깡통, 통조림; (음식물을) 통조림으로 만들다|고대 영어 canne(컵, 용기)|-|[기본어휘] 도구/사물
+13|item|항목, 품목|라틴어 item(마찬가지로)|-|[기본어휘] 개념
+13|package|(포장용) 용기, 상자; 꾸러미, 소포|pack(꾸러미)+age|pack|[기본어휘] 사물
+13|fresh|신선한|게르만어 fraskaz(새로운)|-|[기본어휘] 상태/성질
+13|seafood|해산물|sea(바다)+food(음식)|sea, food|[기본어휘] 음식
+13|smoked|훈제된|smoke(연기)+ed|smoke|[기본어휘] 상태/성질
+13|line up|줄을 서다|line + up|-|[구동사]
+13|bundle|(한 묶음의) 다발, 뭉치|게르만어 bundlin(묶다)|bind, bound|[어근] bind, band (묶다)
+13|grain|곡물, 곡류|라틴어 granum(씨앗)|granary|[어근] gran (알갱이)
+13|ice|얼음|게르만어 isam(얼음)|-|[기본어휘] 자연/물질
+13|freezer|냉동고|freeze(얼다)+er|frigid|[어근] frig (차갑다)
+13|aisle|통로|라틴어 ala(날개, 옆 통로)|-|[기본어휘] 장소/건축
+13|pack|꾸러미, 한 상자; (짐을) 싸다, 꾸리다|게르만어 pak(다발)|package|[기본어휘] 행위/사물
+13|spray|스프레이, 분무기; 뿌리다|중세 네덜란드어 spraeyen(흩뿌리다)|-|[기본어휘] 도구/행위
+13|frozen food|냉동식품|frozen(얼어붙은) + food|freeze, food|[기본어휘] 음식
+13|bottle|병|라틴어 buttis(통)|butt|[기본어휘] 도구
+13|pile|더미|라틴어 pila(기둥, 돌더미)|pillar|[기본어휘] 형태
+13|cart|손수레, 카트|고대 노르스어 kartr(수레)|car, carry|[어근] car (수레, 달리다)
+13|cash register|금전 등록기|cash + register|cash, register|[기본어휘] 도구/기계
+13|cashier|계산원|cash(현금)+ier(사람)|cash|[어근] caps (상자)
+13|bar|막대기, 막대기 모양의 것|고대 프랑스어 barre(막대)|barrel, barrier|[어근] bar (막대)
+13|bin|(뚜껑 달린) 큰 상자|고대 영어 binn(바구니)|-|[기본어휘] 도구/사물
+13|counter|계산대|라틴어 computare(계산하다)|count|[어근] put, count (계산하다)
+13|container|용기|con(함께)+tenere(유지하다)+er|contain, retain|[어근] tain, ten (유지하다, 잡다)
+13|vegetable|채소|라틴어 vegere(활기차다)+able|vigorous|[기본어휘] 음식/식물
+13|dairy|우유의, 유제품의|고대 영어 dæge(빵 굽는 여자, 하녀)|-|[기본어휘] 음식
+13|for free|공짜로, 무료로|for + free|-|[구동사]
+13|grocery|식료 잡화점, 식품점; [pl.] 식료품류|고대 프랑스어 grossier(도매상)|gross|[어근] gross (크다, 전체의)
+13|piece|조각|켈트어 (쪼개다)|peace(평화와 무관)|[기본어휘] 형태/부분
+14|light|가벼운, (양이) 적은; 빛|인도유럽어 leuk(빛나다) / legwh(가벼운)|lucid, lung|[어근] lamp, luc (빛나다) / [어근] lev (가벼운)
+14|tight|꽉 조이는|게르만어 thenk(단단한)|thick|[기본어휘] 상태/성질
+14|clean|깨끗한; 청소하다, 깨끗이 하다|게르만어 klainoz(맑은, 순수한)|clear|[기본어휘] 상태/행위
+14|round|둥근; 한 바퀴를 도는|라틴어 rotundus(둥근)|rotate, roll|[어근] rot, roll (구르다)
+14|low|낮은|고대 노르스어 lagr(낮은)|-|[기본어휘] 상태/성질
+14|flat|평평한, 편평한|인도유럽어 plat(펼치다)|plate, platform|[어근] plat (평평한)
+14|triangle|삼각형|tri(셋)+angle(각)|angle, triple|[어근] tri (셋)
+14|full|가득 찬; 배부른|게르만어 fullaz(가득한)|fill|[어근] ple, plet (채우다)
+14|heavy|무거운|게르만어 hafigaz(무게가 있는)|heave|[기본어휘] 상태/성질
+14|metal|금속|그리스어 metallon(광산)|-|[기본어휘] 물질
+14|crack|(갈라진) 틈, 틈새|고대 영어 cracian(날카로운 소리가 나다)|-|[기본어휘] 형태/상태
+14|dark|어두운|게르만어 derkaz(어두운)|-|[기본어휘] 상태/성질
+14|be covered with|~으로 덮여 있다|be + covered + with|-|[구동사]
+14|oval|달걀 모양, 타원형; 달걀 모양의, 타원형의|라틴어 ovum(알)|egg|[어근] ov (알)
+14|high|높은|게르만어 hauhaz(높은)|height|[기본어휘] 상태/성질
+14|open|열린; 열다|게르만어 upanaz(위로, 열린)|up|[어근] up (위로)
+14|glitter|빛나다|게르만어 glit(빛나다)|glass, glow|[어근] gl (빛나다)
+14|famous|유명한|fama(명성)+ous|fame, fate|[어근] fa, fess (말하다)
+14|square|정사각형; 광장; 정사각형의, 사각의|ex(완전히)+quadrare(네 개로 만들다)|quad|[어근] quad (넷)
+14|empty|텅 빈|고대 영어 æmettig(여유가 있는)|-|[기본어휘] 상태
+14|prefer A to B|B보다 A를 더 선호하다|prefer + A + to + B|-|[구동사]
+14|deep|깊은|게르만어 deupaz(깊은)|dive|[기본어휘] 상태/성질
+14|firm|단단한, 굳은; 회사|라틴어 firmus(단단한)|confirm, farm|[어근] firm (단단한)
+14|loose|헐렁한|고대 노르스어 lauss(풀린)|lose|[기본어휘] 상태/성질
+14|wooden|나무로 만든|wood(나무)+en|wood|[기본어휘] 물질/상태
+14|sharp|날카로운|게르만어 skarpaz(자르다)|shear|[어근] sect, slice (자르다)
+14|shallow|얕은|고대 영어 sceald(얕은)|shoal|[기본어휘] 상태/성질
+14|plastic|플라스틱의, 비닐의; 성형의|그리스어 plassein(형태를 만들다)|plasma|[기본어휘] 물질/상태
+14|colorful|다채로운, 화려한|color(색)+ful|-|[기본어휘] 상태/성질
+14|wide|넓은|게르만어 widaz(멀리 떨어진)|width|[기본어휘] 상태/성질
+15|whisper|속삭임; 속삭이다|고대 영어 hwisprian(의성어)|whistle|[기본어휘] 소통/소리
+15|sour|신, 신맛의|게르만어 suraz(신맛)|-|[기본어휘] 감각/맛
+15|smell|냄새, 후각; 냄새가 나다, 냄새를 맡다|고대 영어 smellan(연기나다, 냄새나다)|-|[기본어휘] 감각
+15|scream|비명을 지르다, 소리치다; 비명, 절규|게르만어 skram(외치다)|-|[기본어휘] 소통/소리
+15|sense|감각; 감지하다|라틴어 sentire(느끼다)|sentiment, consent|[어근] sent, sens (느끼다)
+15|soft|부드러운|게르만어 samftijaz(부드러운)|-|[기본어휘] 감각/촉감
+15|sight|시각, 시력; 보기, 일견|게르만어 sehwan(보다)|see|[어근] vis, vid, view (보다)
+15|noise|소음|라틴어 nausea(뱃멀미, 불쾌감)|nausea|[기본어휘] 감각/소리
+15|look|보다, 바라보다|고대 영어 locian(보다)|-|[기본어휘] 감각/시각
+15|listen|(주의해서) 듣다|고대 영어 hlysnan(주의를 기울이다)|loud|[기본어휘] 감각/청각
+15|objective|객관적인; 목적, 목표|ob(앞에)+jacere(던지다)+ive|object, subject|[어근] ject (던지다)
+15|loud|(소리가) 큰, 시끄러운|게르만어 hludaz(들리는)|listen|[기본어휘] 감각/소리
+15|audio|음의 재생, 오디오; 음성의, 오디오의|라틴어 audire(듣다)|audience, obey|[어근] aud (듣다)
+15|feel|(기분이) 들다, 느끼다|게르만어 foljanan(만지다, 느끼다)|-|[기본어휘] 감각/감정
+15|touch|촉감; 접촉; 만지다, 건드리다|고대 프랑스어 tochier(치다, 만지다)|attach|[기본어휘] 감각/촉감
+15|discover|발견하다, 알아내다|dis(반대)+cover(덮다)|cover, recover|[어근] cover (덮다)
+15|hard|굳은, 단단한; 어려운|게르만어 harduz(단단한)|-|[기본어휘] 상태/성질
+15|bad|불쾌한, 나쁜; (음식이) 상한|고대 영어 bæddel(양성구유, 나쁜 사람)|-|[기본어휘] 평가/상태
+15|focus on|~에 집중하다, 초점을 맞추다|focus + on|-|[구동사]
+15|notice|주의, 주목; 주의하다, 알아차리다|라틴어 noscere(알다)|note, recognize|[어근] not, nounc (알다, 표시하다)
+15|make sense|의미가 통하다, 이해가[말이] 되다|make + sense|-|[구동사]
+15|smooth|부드러운; 부드럽게 하다|고대 영어 smoth(부드러운)|-|[기본어휘] 감각/촉감
+15|stare|빤히 보다, 응시하다|고대 영어 starian(서 있다, 응시하다)|stand, state|[어근] sta, stit (서다, 멈추다)
+15|flavor|맛, 풍미|고대 프랑스어 flaor(냄새, 맛)|-|[기본어휘] 감각/맛
+15|watch|지켜보다|고대 영어 wæccan(깨어 있다)|wake, wait|[어근] vig, veg (깨어있는, 생기있는)
+15|rough|거친; 가공하지 않은|게르만어 rukhwaz(거친 털이 있는)|-|[기본어휘] 상태/성질
+15|sweet|달콤한|인도유럽어 swad(달콤한)|persuade|[기본어휘] 감각/맛
+15|bitter|쓴, 쓴맛의|게르만어 bitraz(물어뜯는)|bite|[기본어휘] 감각/맛
+15|juicy|즙이 많은|juice(즙)+y|-|[기본어휘] 상태/성질
+15|observe|관찰하다, 알아차리다|ob(앞에)+servare(지키다, 보다)|reserve, serve|[어근] serv (섬기다, 지키다)
+16|bruise|멍, 타박상|고대 영어 brysan(부수다)|-|[기본어휘] 신체/질병
+16|emergency|비상사태, 응급|e(밖으로)+mergere(빠지다)|merge, submerge|[어근] merg (빠지다, 나타나다)
+16|cure|치료법; 치료하다|라틴어 cura(돌봄)|secure, curious|[어근] cur (돌보다)
+16|sore|아픈, 쑤시는|게르만어 sairaz(고통)|sorry|[기본어휘] 신체/상태
+16|blind|눈이 먼, 시각 장애의|게르만어 blindaz(어두운)|blend|[기본어휘] 신체/상태
+16|patient|환자; 끈기 있는, 참을성 있는|라틴어 pati(겪다, 인내하다)|passion, passive|[어근] pass, pati (통과하다, 겪다)
+16|see a doctor|의사의 진찰을 받다, 병원에 가다|see + a + doctor|-|[구동사]
+16|disease|병, 질병|dis(부정)+ease(편안함)|ease, easy|[어근] ease, dis (편안함)
+16|virus|바이러스|라틴어 virus(독)|virulent|[어근] vir (독)
+16|operate|수술하다|라틴어 operari(일하다)|operation, opus|[어근] oper (일하다)
+16|fever|열, 발열|라틴어 febris(열)|febrile|[기본어휘] 신체/질병
+16|vomit|토하다|라틴어 vomere(토하다)|-|[어근] vom (토하다)
+16|catch a cold|감기에 걸리다|catch + a + cold|-|[구동사]
+16|examine|진찰하다|라틴어 examinare(저울로 달다)|exam, exact|[어근] exam, ag (달아보다)
+16|dizzy|어지러운|고대 영어 dysig(어리석은)|-|[기본어휘] 신체/상태
+16|sneeze|재채기하다|고대 영어 fneosan(의성어)|-|[기본어휘] 신체/현상
+16|recover|회복하다|re(다시)+cover(덮다, 찾다)|cover, discover|[어근] cover (덮다)
+16|symptom|증상|sym(함께)+piptein(떨어지다)|sympathy|[어근] sym, syn (함께)
+16|cut|베인 상처; 상처를 내다, ~을 베다|게르만어 (자르다)|-|[기본어휘] 행위
+16|pain|고통|라틴어 poena(벌, 고통)|punish, penalty|[어근] pen, pun (벌, 고통)
+16|medicine|약|라틴어 mederi(치료하다)|medical, remedy|[어근] med (치료하다)
+16|deaf|귀가 먹은, 청각 장애가 있는|게르만어 daubaz(어리석은, 둔한)|dumb|[기본어휘] 신체/상태
+16|burn|화상; 화상을 입다[입히다], (햇볕에) 타다|게르만어 brinnan(타다)|brand|[기본어휘] 자연/현상
+16|cough|기침; 기침하다|게르만어 (기침 소리)|-|[기본어휘] 신체/현상
+16|medical|의학의|라틴어 mederi(치료하다)|medicine, remedy|[어근] med (치료하다)
+16|cancer|암|라틴어 cancer(게, 궤양)|cancel|[어근] canc (게, 격자)
+16|wound|상처; 상처를 내다|게르만어 wundon(상처)|-|[기본어휘] 신체/질병
+16|relax|쉬게 하다, 편히 쉬다|re(다시)+laxare(느슨하게 하다)|lax, delay|[어근] lax (느슨한)
+16|ache|통증, 아픔; 통증이 있다|고대 영어 acan(아프다)|-|[기본어휘] 신체/질병
+16|prevent|예방하다, 막다|pre(미리)+venire(오다)|venue, event|[어근] ven, vent (오다)
+17|passport|여권|pass(통과하다)+port(항구)|pass, port, transport|[어근] port (나르다, 항구)
+17|itinerary|여행 일정표; 여행 일기|라틴어 iter(가다)|itinerant|[어근] iter, it (가다)
+17|check|수표; 점검; 조사하다, 점검하다|페르시아어 shah(왕, 장군을 위협함)|chess|[기본어휘] 행위
+17|trip|여행|게르만어 trippan(가볍게 밟다)|-|[기본어휘] 이동/여행
+17|apply|신청하다 (for)|ad(로)+plicare(접다)|comply, reply|[어근] ply, plic (접다)
+17|reach|도착하다, 도달하다|게르만어 raikjan(뻗다)|-|[기본어휘] 이동
+17|insurance|보험|in(안에)+securus(안전한)+ance|secure, sure|[어근] cur (돌보다)
+17|souvenir|기념품|sub(아래/위로)+venire(오다)|venue, prevent|[어근] ven, vent (오다)
+17|abroad|해외로|a(에)+broad(넓은)|broad|[어근] broad (넓은)
+17|visa|비자, 사증|라틴어 videre(보다, 확인된)|vision, view|[어근] vis, vid, view (보다)
+17|jet lag|시차증(여행 시차에 의한 피로·신경 과민)|jet(제트기)+lag(지연)|-|[구동사]
+17|scenery|풍경|그리스어 skene(무대, 텐트)|scene|[어근] scen (무대)
+17|attendant|안내원, 종업원|ad(로)+tendere(뻗다)|attend, tend|[어근] tend, tens (뻗다)
+17|baggage|짐, 수하물|bag(가방)+age|-|[기본어휘] 도구
+17|cancel|취소하다; 취소|라틴어 cancellus(격자, 엑스표)|cancer|[어근] canc (게, 격자)
+17|journey|(보통 멀리 가는) 여행, 여정|고대 프랑스어 jour(하루)|journal, diary|[어근] jour, dia (날, 하루)
+17|land|땅; 착륙하다|게르만어 landam(땅)|landscape|[기본어휘] 자연/장소
+17|flight|비행|게르만어 fliuganan(날다)|fly, fleet|[어근] fly, flect (날다)
+17|all over the world|전 세계에|all + over + the + world|-|[구동사]
+17|arrive|도착하다|ad(로)+ripa(강기슭)|river, rival|[어근] riv, rip (강, 기슭)
+17|destination|(여행 등의) 목적지|de(완전히)+stare(서다)|station, state|[어근] sta, stit (서다, 멈추다)
+17|board|탑승하다, 승차하다|게르만어 bordam(판자, 배의 측면)|border|[기본어휘] 시설/행위
+17|delay|지연, 연기; 연기하다|de(떨어져)+laxare(느슨하게 하다)|lax, relax|[어근] lax (느슨한)
+17|sightseeing|관광|sight(시야)+seeing(보는 것)|see, vision|[어근] vis, vid, view (보다)
+17|depart|출발하다|de(분리)+partire(나누다)|part, apartment|[어근] part, port (나누다, 부분)
+17|have a good time|즐겁게 보내다, 좋은 시간을 갖다|have + a + good + time|-|[구동사]
+17|landscape|풍경|land(땅)+scape(모양)|land, shape|[어근] land, scape (모양)
+17|claim|요구, 청구; 주장; 요구하다; 주장하다|라틴어 clamare(외치다)|exclaim, clamor|[어근] claim, clam (외치다)
+17|security|보안, 안전|se(떨어져)+cura(걱정, 돌봄)|secure, cure|[어근] cur (돌보다)
+17|reserve|예약하다|re(뒤에)+servare(지키다)|preserve, serve|[어근] serv (지키다)
+18|go (out) for a walk|산책하러 (나)가다|go + out + for + a + walk|-|[구동사]
+18|hike|하이킹하다, 도보여행하다|어원 불분명 (힘차게 걷다)|-|[기본어휘] 스포츠
+18|interest|흥미, 관심|inter(사이에)+esse(존재하다)|essence|[어근] ess, est (존재하다)
+18|collect|모으다|com(함께)+legere(모으다)|elect, select|[어근] lect, lig (모으다, 읽다)
+18|model|모형, 모델; 모형의, 모델이 되는|라틴어 modus(방식, 척도)|mode, modern|[어근] mod (척도, 방식)
+18|magic|마법, 주술; 마법의|그리스어 magikos(마법사의)|magi|[어근] mag (거대한, 마법)
+18|involve|수반하다, 필요로 하다|in(안에)+volvere(구르다)|revolve, evolve|[어근] vol, volv (구르다)
+18|favorite|가장 좋아하는|라틴어 favere(호의를 보이다)|favor|[어근] fav, fab (호의를 베풀다)
+18|camp|야영, 캠프; 야영지; 야영하다|라틴어 campus(들판)|champion, campus|[어근] camp (들판)
+18|mania|열광|그리스어 mainesthai(미치다)|maniac|[어근] man (광기, 마음)
+18|musical|음악의; 뮤지컬|라틴어 musa(뮤즈 여신)+ical|music, museum|[어근] mus (예술, 음악)
+18|craft|(수)공예; 공예품을 만들다|고대 영어 cræft(힘, 기술)|crafty|[기본어휘] 취미
+18|dance|춤; 춤을 추다|고대 프랑스어 dancier(춤추다)|-|[기본어휘] 활동
+18|game|게임, 시합|게르만어 ga-mann(사람들이 모임)|-|[기본어휘] 활동
+18|pleasure|기쁨|라틴어 placere(기쁘게 하다)|please, placid|[어근] pleas, plac (기쁘게 하다)
+18|puzzle|수수께끼, 퍼즐|어원 불분명|-|[기본어휘] 활동
+18|fix|고치다; 고정시키다|라틴어 figere(단단히 박다)|fixture|[어근] fix (고정하다)
+18|jog|조깅하다|어원 불분명 (가볍게 흔들다)|-|[기본어휘] 활동
+18|comic|희극의, 만화의|그리스어 komos(축제)|comedy|[어근] com, revel (축제)
+18|chess|체스, 서양 장기|페르시아어 shah(왕)|check|[기본어휘] 활동
+18|chat|수다를 떨다; (인터넷으로) 채팅하다|chatter의 축약형|-|[기본어휘] 소통
+18|knit|뜨개질을 하다|고대 영어 cnyttan(묶다)|knot|[어근] knot, knit (묶다)
+18|volunteer|자원 봉사자,지원자; 자진하여 하다|라틴어 voluntas(의지)|voluntary|[어근] vol (의지)
+18|from time to time|때때로, 가끔|from + time + to + time|-|[구동사]
+18|stamp|우표; 도장|게르만어 stamp(발로 쿵 구르다)|step|[어근] stamp, step (밟다)
+18|picture|사진, 그림|라틴어 pingere(그리다)|paint, depict|[어근] pict (그리다)
+18|activity|움직임; 활동|agere(행동하다)+ivity|act, exact|[어근] act, ag (행동하다)
+18|spend ... on ~ing|~하는 데 …을 쓰다|spend + on + ing|-|[구동사]
+18|movie|영화|move(움직이다)의 구어체|move, motion|[어근] mot, mov (움직이다)
+18|leisure|여가, 한가한 시간; 한가한|라틴어 licere(허락되다)|license|[어근] lic (허락하다)
+19|player|경기자, 선수|게르만어 plegan(위험을 무릅쓰다)|play|[어근] play (놀다)
+19|stretch|몸을 쭉 뻗다, 쭉 내밀다|게르만어 strak(곧은, 팽팽한)|strict, straight|[어근] strict, string (팽팽한)
+19|up and down|위아래로, 이리저리|up + and + down|-|[구동사]
+19|defender|수비수|de(떨어져)+fendere(치다)|defend, offend|[어근] fend, fens (치다)
+19|champion|챔피언, 우승자|라틴어 campus(들판, 싸움터)|camp|[어근] camp (들판)
+19|racket|라켓; 라켓으로 치다|아랍어 rahat(손바닥)|-|[기본어휘] 스포츠
+19|base|(야구의) 루; 토대, 기초|그리스어 basis(발걸음, 토대)|basis, basic|[어근] bas, bat (기초, 낮다)
+19|shoot|사격; (총 등을) 쏘다; 슛을 하다|게르만어 skeutanan(빠르게 던지다)|shot|[기본어휘] 스포츠
+19|outdoor|실외의, 집밖의|out + door|-|[기본어휘] 장소/환경
+19|skate|스케이트 구두; 스케이트를 타다|네덜란드어 schaats(동물 뼈로 만든 스케이트)|-|[기본어휘] 스포츠
+19|swim|수영하다|게르만어 swimmanan(움직이다)|-|[기본어휘] 스포츠
+19|baseball|야구|base(루)+ball(공)|base|[기본어휘] 스포츠
+19|athlete|(운동)선수|그리스어 athlon(상, 시합)|athletic|[어근] athl (상, 시합)
+19|coach|코치, 지도자; 마차; 코치하다, 지도하다|헝가리어 kocsi(마차가 처음 만들어진 도시)|-|[기본어휘] 스포츠
+19|referee|(운동 경기) 심판; 심판을 보다|re(뒤로)+ferre(나르다)|refer, transfer|[어근] fer (나르다, 운반하다)
+19|throw|투구, 던짐; 던지다|인도유럽어 tre(비틀다, 돌리다)|thread|[기본어휘] 스포츠
+19|catch|잡다; 공을 받다|라틴어 capere(잡다)|recipe, capture|[어근] cap, cept (잡다, 취하다)
+19|goal|(축구의) 골, 득점; 목적, 목표|고대 영어 gal(장애물)|-|[기본어휘] 스포츠
+19|prize|상, 상품|라틴어 prehendere(잡다)|surprise, prison|[어근] prehend, pris (잡다)
+19|match|시합, 경기; 경쟁 상대|고대 영어 gemæcca(짝)|mate|[기본어휘] 스포츠
+19|batter|타자|라틴어 battuere(치다)|beat, battle|[어근] bat (치다)
+19|bowling|볼링|라틴어 bulla(둥근 거품, 공)|bowl|[어근] bull (둥근, 거품)
+19|surf|파도; 파도를 타다, 서핑하다|어원 불분명 (인도 혹은 해안 용어)|-|[기본어휘] 스포츠
+19|warm up|(스포츠나 활동 전에) 몸을 천천히 풀다, 준비 운동을 하다|warm + up|-|[구동사]
+19|competition|경쟁; 대회, 시합|com(함께)+petere(구하다)|appetizer, petition|[어근] pet, petit (구하다, 찾다)
+19|sweat|땀; (땀이 나도록) 힘든 일; 땀을 흘리다|인도유럽어 swoid(땀)|-|[기본어휘] 신체/활동
+19|dive|잠수; 잠수하다, 물 속에 뛰어들다|게르만어 dupjanan(깊이 담그다)|deep|[기본어휘] 스포츠
+19|kick|(걷어) 차기, 발길질; 발로 차다|어원 불분명 (스칸디나비아 기원)|-|[기본어휘] 스포츠
+19|score|(경기) 득점, 점수; 득점하다|고대 노르스어 skor(자국, 눈금)|shear|[어근] sect, slice (자르다)
+19|basketball|농구|basket(바구니)+ball(공)|basket|[기본어휘] 스포츠
+20|expensive|값비싼|ex(밖으로)+pendere(지불하다)|spend, pension|[어근] pend, pens (매달다, 지불하다)
+20|catalog|목록, (상품 등의) 카탈로그|cata(아래로)+legein(말하다, 고르다)|dialogue, logic|[어근] log, logue (말, 이성)
+20|store|가게, 상점|라틴어 instaurare(세우다, 저장하다)|restore, story|[어근] staur, stor (세우다)
+20|discount|할인; 할인하다|dis(반대)+computare(계산하다)|count, account|[어근] put, count (계산하다)
+20|reasonable|(가격이) 합리적인, 저렴한; 이치에 맞는|reari(생각하다)+son(소리)+able|reason, rational|[어근] rat, reas (계산하다, 이성)
+20|medium|중간; 중간의|라틴어 medius(중간의)|mediate, medieval|[어근] medi (중간)
+20|gift|선물|게르만어 gebanan(주다)|give|[기본어휘] 경제/거래
+20|display|전시, 진열; 전시하다|dis(분리)+plicare(접다)|deploy, apply|[어근] ply, plic (접다)
+20|sale|판매; 염가 판매, 세일|게르만어 saloz(넘겨주다)|sell|[기본어휘] 경제/거래
+20|tag|꼬리표, 태그; 정가표|어원 불분명 (늘어진 부분)|-|[기본어휘] 경제/거래
+20|change|거스름돈; 변화; 바꾸다|라틴어 cambire(교환하다)|exchange|[어근] camb, chang (교환하다)
+20|tax|세금|라틴어 taxare(평가하다)|task|[어근] tax, tact (평가하다, 만지다)
+20|choose|선택하다|게르만어 keusanan(맛보다, 시험하다)|choice|[기본어휘] 행위
+20|cash|현금|라틴어 capsa(상자)|case, capsule|[어근] caps (상자)
+20|brand-name|(유명) 상표가 붙은|brand(불에 데인 자국) + name|-|[기본어휘] 경제/거래
+20|auction|경매|라틴어 augere(증가시키다)|augment, author|[어근] aug, auct (늘리다)
+20|exchange|교환; 거래소; 교환하다|ex(밖으로)+cambire(교환하다)|change|[어근] camb, chang (교환하다)
+20|quality|질, 품질|라틴어 qualis(어떠한)|qualify|[어근] qual (어떠한)
+20|business|사업, 상업, 장사|busy(바쁜)+ness|busy|[기본어휘] 경제/거래
+20|receipt|영수증|re(다시)+capere(잡다)|receive, capture|[어근] cap, cept (잡다, 취하다)
+20|sell|팔다|게르만어 saljanan(주다)|sale|[기본어휘] 경제/거래
+20|pay|지불하다|라틴어 pacare(평화롭게 하다)|peace, pact|[어근] pac (평화)
+20|goods|상품, 물품|good(좋은)에서 유래|-|[기본어휘] 경제/거래
+20|look around|둘러보다, 구경하다|look + around|-|[구동사]
+20|stand|노점, 가판대|인도유럽어 sta(서다)|station, state|[어근] sta, stit (서다, 멈추다)
+20|select|선발하다, 선택하다; 엄선된, 고급의|se(분리)+legere(고르다)|elect, collect|[어근] lect, lig (모으다, 읽다)
+20|retail|소매|re(다시)+tailler(자르다)|tailor, detail|[어근] tail (자르다)
+20|cheap|값싼, 저렴한|고대 영어 ceap(거래, 시장)|-|[기본어휘] 경제/거래
+20|customer|고객|custom(관습)+er|accustom, costume|[어근] suet, custom (익숙해지다)
+20|drop by|잠깐 들르다|drop + by|-|[구동사]
+21|wipe|닦다|게르만어 wipanan(문지르다)|whip|[기본어휘] 행위
+21|refill|새 보충물; 다시 채우다, 보충하다|re(다시)+fill(채우다)|full|[어근] ple, plet (채우다)
+21|tip|팁; (물건·신체의) 뾰족한 끝|어원 불분명 (작은 조각)|top|[기본어휘] 형태/부분
+21|calorie|칼로리, 열량|라틴어 calor(열)|cauldron|[기본어휘] 과학/단위
+21|wrap|싸다, 포장하다; 포장지|어원 불분명 (접다, 구부리다)|-|[기본어휘] 행위
+21|total|합계, 총액; 전체의, 총계의|라틴어 totus(전체의)|fact|[어근] tot (전체의)
+21|be ready to|~할 준비가 되다|be + ready + to|-|[구동사]
+21|bill|계산서, 청구서|라틴어 bulla(봉인, 문서)|bullet, boil|[어근] bull (둥근, 거품)
+21|ingredient|재료|in(안으로)+gradi(가다)|grade, progress|[어근] grad, gress (걸어가다)
+21|buffet|뷔페 식당, 뷔페식 상차림|프랑스어 buffet(탁자)|-|[기본어휘] 장소/시설
+21|cook|요리사; 요리하다|라틴어 coquere(요리하다)|kitchen, biscuit|[어근] coqu, coc (요리하다)
+21|order|주문; 주문하다|라틴어 ordo(순서, 줄)|ordinary, disorder|[어근] ord (순서)
+21|either A or B|A와 B 둘 중 하나|either + A + or + B|-|[구동사]
+21|recommend|추천하다|re(강조)+commendare(맡기다)|command, mandate|[어근] mand, mend (명령하다, 맡기다)
+21|take|받다|고대 노르스어 taka(잡다)|-|[기본어휘] 행위
+21|beverage|음료|라틴어 bibere(마시다)|imbibe|[기본어휘] 음식
+21|straw|빨대; 지푸라기|게르만어 strawam(흩뿌려진 것)|strew|[기본어휘] 자연/식물
+21|rare|(고기 등이) 덜 익은; 드문, 희귀한|라틴어 rarus(드문)|rarefy|[기본어휘] 상태/성질
+21|chef|요리사, 주방장|라틴어 caput(머리)|chief, capital|[어근] cap, capt (머리)
+21|waiter|웨이터|wait(기다리다)+er|wait|[기본어휘] 사람
+21|serve|시중들다; 제공하다|라틴어 servire(노예가 되다)|servant, deserve|[어근] serv (섬기다, 지키다)
+21|appetite|식욕|ad(로)+petere(구하다)|appetizer, petition|[어근] pet, petit (구하다, 찾다)
+21|special|특별한 것, 특별 메뉴; 특별한|라틴어 species(외양, 종류)|species, specific|[어근] spec, spic (보다, 종류)
+21|spill|흘리다, 엎지르다|게르만어 spillanan(파괴하다)|spoil|[기본어휘] 행위
+21|dessert|디저트, 후식|des(반대)+servire(시중들다, 치우다)|serve|[어근] serv (섬기다, 지키다)
+21|napkin|냅킨|라틴어 mappa(천)+kin(작은)|map|[기본어휘] 생활용품
+21|bite|한입; 물다|게르만어 bitanan(물다)|bitter|[기본어휘] 행위
+21|deliver|배달하다|de(완전히)+liberare(자유롭게 하다)|liberty, liberal|[어근] liber (자유로운)
+21|wait for|~을 기다리다|wait + for|-|[구동사]
+21|set|놓다; 준비하다|고대 영어 settan(놓다)|sit, seat|[어근] sed, sess (앉다)
+22|shade|그늘|게르만어 skadwaz(어둠)|shadow|[기본어휘] 자연/현상
+22|shore|물가, 기슭|게르만어 skuraz(자르다, 나누다)|shear, short|[어근] sect, slice (자르다)
+22|scuba|스쿠버, 잠수용 호흡 장치|Self-Contained Underwater Breathing Apparatus의 약자|-|[기본어휘] 도구/장비
+22|raft|고무 보트, 뗏목|고대 노르스어 raptr(통나무)|roof|[기본어휘] 도구/장비
+22|sunglasses|선글라스|sun + glass + es|sun, glass|[기본어휘] 생활용품
+22|mat|돗자리, 매트|라틴어 matta(갈대로 엮은 것)|-|[기본어휘] 생활용품
+22|vacation|방학|라틴어 vacare(비어 있다)|vacant, vacuum|[어근] vac, van (비어 있는)
+22|look forward to ~ing|~을 고대하다, 손꼽아 기다리다|look + forward + to + ing|-|[구동사]
+22|pebble|조약돌, 자갈|어원 불분명|-|[기본어휘] 자연/물질
+22|flipper|물갈퀴, 오리발|flip(가볍게 치다)+er|flip|[기본어휘] 동물/신체
+22|sunblock|자외선 차단제|sun + block|sun, block|[기본어휘] 생활용품
+22|float|물 위에 뜨다, (배 등을) 띄우다|게르만어 flotuz(흐르다)|flow, fleet|[어근] flu, fluct (흐르다)
+22|throw away|(쓰레기 등을) 버리다; (기회 등을) 놓치다, 날리다|throw + away|-|[구동사]
+22|sunbath|일광욕|sun + bath|sun, bath|[기본어휘] 건강/미용
+22|sand|모래|게르만어 sandam(모래)|-|[기본어휘] 자연/물질
+22|whistle|호각; 호각을 불다|고대 영어 hwistlan(쉿 소리를 내다)|whisper|[기본어휘] 도구/악기
+22|lifeboat|구명보트|life(생명) + boat(배)|life, boat|[기본어휘] 도구/장비
+22|lifeguard|인명 구조원|life + guard|life, guard|[기본어휘] 직업/사람
+22|shell|조개|게르만어 skaljo(껍질)|scale|[기본어휘] 동물/부분
+22|parasol|파라솔, 양산|para(막다)+sol(태양)|parachute, solar|[어근] sol (태양)
+22|expose|노출하다|ex(밖으로)+ponere(놓다)|pose, position|[어근] pos, pon (놓다)
+22|binoculars|쌍안경|bi(둘)+oculus(눈)+ar|ocular|[어근] ocul, opt (눈)
+22|swimsuit|수영복|swim + suit|swim, suit|[기본어휘] 의류
+22|blanket|담요|프랑스어 blanc(하얀)|blank|[어근] blanc (하얀)
+22|wave|파도|게르만어 wabon(흔들리다)|waver|[기본어휘] 자연/현상
+22|all day long|하루 종일|all + day + long|-|[구동사]
+22|cooler|냉장 박스|cool + er|cool|[기본어휘] 도구/장비
+22|snorkel|스노클을 쓰고 잠수하다, 헤엄치다|독일어 Schnorchel(주둥이)|-|[기본어휘] 스포츠
+22|suntan|선탠, 볕에 그을음|sun + tan|sun, tan|[기본어휘] 건강/미용
+22|yacht|요트|네덜란드어 jaghte(사냥선)|-|[기본어휘] 도구/장비
+23|Easter|부활절|게르만어 austron(새벽의 여신, 동쪽)|east|[기본어휘] 문화/종교
+23|lantern|랜턴|그리스어 lampein(빛나다)|lamp|[어근] lamp, luc (빛나다)
+23|Christmas|크리스마스|Christ(그리스도)+mass(미사)|Christ|[기본어휘] 문화/종교
+23|Eve|전날 밤, 이브|고대 영어 æfen(저녁)|evening|[기본어휘] 시간
+23|trick|속이다; 속임수|고대 프랑스어 trichier(속이다)|treachery|[기본어휘] 행위
+23|hide|숨기다|게르만어 hudjanan(덮다)|hut, hat|[기본어휘] 행위
+23|stuff|(속을) 채우다; 것, 물건|고대 프랑스어 estoffe(재료)|-|[기본어휘] 사물/상태
+23|blow|불다|게르만어 blæanan(불다)|blast|[기본어휘] 행위
+23|take place|(회의, 행사 등이) 열리다, 개최되다|take + place|-|[구동사]
+23|gather|(사람들이) 모이다, 모으다|게르만어 gadurojanan(함께 가져오다)|together, good|[기본어휘] 행위
+23|Halloween|핼러윈|All Hallows' Eve의 축약형|hallow, holy|[기본어휘] 문화/종교
+23|invitation|초대; 초대장|in(안으로)+vitare(부르다)|invite|[어근] vit, voc (부르다)
+23|anniversary|기념일|annus(해)+vertere(돌다)|annual, reverse|[어근] ann, enn (해, 년)
+23|candy|사탕|아랍어 qandi(설탕으로 만든)|-|[기본어휘] 음식
+23|year|해, 년|게르만어 jeram(해, 계절)|-|[기본어휘] 시간
+23|decorate|장식하다|라틴어 decus(아름다움, 영예)|decor, decent|[어근] dec, dign (어울리는)
+23|witch|마녀|고대 영어 wicce(마법사)|wicked|[기본어휘] 문화/종교
+23|wish|소원; 기원하다|게르만어 wunskanan(원하다)|win|[기본어휘] 감정/마음
+23|mask|가면|아랍어 maskharah(광대)|mascot|[기본어휘] 도구/장비
+23|festival|축제|라틴어 festum(휴일, 축제)|feast|[기본어휘] 문화/종교
+23|reindeer|순록|고대 노르스어 hreinn(뿔 달린 짐승)+deer|deer|[기본어휘] 동물
+23|be similar to|~와 비슷하다, 유사하다|be + similar + to|-|[구동사]
+23|congratulate|축하하다|con(함께)+gratus(기쁜)|grace, grateful|[어근] grat, grac (기쁜, 감사하는)
+23|honeymoon|신혼여행|honey + moon|honey, moon|[기본어휘] 문화/종교
+23|Valentine|밸런타인|성 밸런타인(St. Valentine)의 이름에서 유래|valiant, value|[기본어휘] 문화/종교
+23|crowded|붐비는, 혼잡한|게르만어 krudanan(밀다)|crowd|[기본어휘] 상태
+23|celebrate|기념하다, 축하하다|라틴어 celeber(유명한, 붐비는)|celebrity|[기본어휘] 문화/종교
+23|Thanksgiving|추수 감사절|thanks + giving|thank, give|[기본어휘] 문화/종교
+23|turkey|칠면조, 칠면조 고기|Turkey(터키)에서 유래|-|[기본어휘] 동물
+23|costume|복장, 의상; 분장, 변장|라틴어 consuescere(익숙해지다)|custom, accustom|[어근] suet, custom (익숙해지다)
+24|fishing rod|낚싯대|fishing + rod|-|[기본어휘] 도구/장비
+24|amusement|놀이, 즐거움, 재미|a(에)+muser(응시하다)+ment|muse, music|[어근] mus (예술, 음악)
+24|zoo|동물원|zoological garden의 축약형|zoology, zodiac|[어근] zoo (동물)
+24|sleeping bag|침낭|sleeping + bag|-|[기본어휘] 도구/장비
+24|rapids|급류, 여울|라틴어 rapere(채어 가다)|rapid, rape|[어근] rap, rav (채어 가다)
+24|be filled with|~으로 가득 차다|be + filled + with|-|[구동사]
+24|merry-go-round|회전목마|merry + go + round|-|[기본어휘] 도구/장비
+24|swing|그네; 그네를 타다|게르만어 swinganan(흔들리다)|sway|[기본어휘] 도구/장비
+24|botanical garden|식물원|botany(식물학) + garden|botany, garden|[기본어휘] 장소/시설
+24|rope|줄|게르만어 raipaz(밧줄)|-|[기본어휘] 도구/장비
+24|flea market|벼룩시장|flea + market|flea, market|[기본어휘] 장소/시설
+24|because of|~ 때문에|because + of|-|[구동사]
+24|bench|긴 의자, 벤치|게르만어 bankiz(은행, 벤치)|bank|[기본어휘] 가구
+24|ride|탈것; 타다|게르만어 ridanan(타다)|road|[어근] rid, road (타다, 길)
+24|backpack|배낭; 배낭을 지고 걷다|back(등) + pack(꾸러미)|back, pack|[기본어휘] 도구/장비
+24|concert|콘서트, 공연|con(함께)+certare(싸우다, 노력하다)|certain, ascertain|[어근] cert, cri (분리하다, 결정하다)
+24|walk|걷다, 산책하다|게르만어 walkanan(구르다, 헤매다)|-|[기본어휘] 행위
+24|aquarium|수족관|aqua(물)+arium(장소)|water|[어근] aqua (물)
+24|campfire|모닥불|camp + fire|camp, fire|[기본어휘] 장소/시설
+24|get together|모이다, 모으다|get + together|-|[구동사]
+24|picnic|소풍|프랑스어 pique-nique(각자 음식을 가져오는 식사)|-|[기본어휘] 문화/종교
+24|fountain|분수|라틴어 fons(샘)|font, fond|[기본어휘] 장소/시설
+24|event|사건, 행사|ex(밖으로)+venire(오다)|venue, prevent|[어근] ven, vent (오다)
+24|slide|미끄럼틀; 미끄러지다|게르만어 slidan(미끄러지다)|sled|[기본어휘] 도구/장비
+24|playground|놀이터, 운동장|play + ground|play, ground|[기본어휘] 장소/시설
+24|visit|방문하다|visere(보러 가다)|vision, view|[어근] vis, vid, view (보다)
+24|thermos|보온병|그리스어 therme(열)|thermal|[어근] therm (열)
+24|peak|꼭대기|어원 불분명 (뾰족한 점)|pike|[기본어휘] 자연/지형
+24|seesaw|시소; 시소를 타다|see(보다) + saw(보았다)|see, saw|[기본어휘] 도구/장비
+24|sail|요트를 타다; 항해하다, 나아가다|게르만어 seglam(돛)|-|[기본어휘] 도구/장비
+25|valley|계곡, 골짜기|라틴어 vallis(골짜기)|-|[기본어휘] 자연/지형
+25|thunder|천둥, 천둥같이 큰 소리|인도유럽어 ton(천둥치다)|astonish, stun|[어근] ton, stun (천둥치다, 놀라게 하다)
+25|disaster|재난, 재해|dis(나쁜)+astrum(별)|asterisk, astronaut|[어근] aster, astro (별)
+25|explore|탐험하다|ex(밖으로)+plorare(소리치다)|deplore|[어근] plor (소리치다, 울다)
+25|creature|(신의) 창조물, 피조물|creare(만들다)+ure|create|[어근] cre, cruit (만들다, 자라다)
+25|flood|홍수|게르만어 floduz(흐르는 물)|flow, float|[어근] flu, fluct (흐르다)
+25|desert|사막|de(반대)+serere(결합하다)|series, insert|[어근] ser, sert (결합하다)
+25|earthquake|지진|earth(지구) + quake(흔들리다)|earth, quake|[기본어휘] 자연/지형
+25|coast|해안, 연안|라틴어 costa(갈비뼈, 옆구리)|cost|[기본어휘] 자연/지형
+25|food chain|먹이 사슬|food + chain|food, chain|[기본어휘] 과학/생물
+25|appear|나타나다|ad(로)+parere(보이다)|transparent|[어근] par, pear (보이다)
+25|landslide|산사태|land + slide|land, slide|[기본어휘] 자연/지형
+25|waterfall|폭포|water + fall|water, fall|[기본어휘] 자연/지형
+25|volcano|화산|라틴어 Vulcanus(불의 신)|vulcanize|[기본어휘] 자연/지형
+25|river|강|라틴어 ripa(강기슭)|arrive, rival|[어근] riv, rip (강, 기슭)
+25|hurricane|폭풍, 허리케인|카리브어 huracan(악마의 바람)|-|[기본어휘] 자연/현상
+25|breeze|산들바람|스페인어 briza(북동풍)|-|[기본어휘] 자연/현상
+25|polar|북극[남극]의, 극지의|라틴어 polus(축, 극)|pole|[기본어휘] 과학/지리
+25|find out|~을 찾아내다, 알아내다|find + out|-|[구동사]
+25|ocean|바다, 대양|그리스어 okeanos(대양의 신)|-|[기본어휘] 자연/지형
+25|element|요소, 성분; 원소|라틴어 elementum(기본 원리)|elementary|[기본어휘] 과학/화학
+25|right away|곧바로, 즉시|right + away|-|[구동사]
+25|stream|시내, 개울; 흐름, 동향|인도유럽어 sreu(흐르다)|-|[기본어휘] 자연/지형
+25|cliff|벼랑, 절벽|게르만어 klibam(자르다, 쪼개다)|cleave|[기본어휘] 자연/지형
+25|lake|호수|라틴어 lacus(호수, 연못)|lagoon|[기본어휘] 자연/지형
+25|tide|조수, 간만|게르만어 tidiz(시간)|time|[어근] tid, tim (시간)
+25|lightning|번개; 번개 같은|light(빛)+ning|light, luc|[어근] lamp, luc (빛나다)
+25|source|원천, 수원|sub(아래에서)+regere(똑바르게 하다, 솟다)|surge, resource|[어근] rect, reg (똑바른, 다스리다)
+25|natural|자연의, 자연스러운|natura(태어난 상태)+al|nature, nation|[어근] nat, gn (태어나다)
+25|forest|숲, 삼림|라틴어 foris(바깥에)|foreign|[어근] for, clos (문, 닫다)`;
+
+        const VOCAB_LIST = RAW_DATA.trim().split('\n').map((line, idx) => {
+            const [day, word, meaning, etymology, cognates, group] = line.split('|');
+            return { id: idx, day, word, meaning, etymology, cognates, group };
+        });
+
+        const ALL_DAYS = [...new Set(VOCAB_LIST.map(v => v.day))].sort((a, b) => Number(a) - Number(b));
+
+        let state = {
+            tab: 'study',
+            studyDay: ALL_DAYS[0],
+            test: {
+                status: 'config', // config, active, finished
+                day: 'ALL',
+                amount: 10,
+                type: 'wordToMeaning', // 'wordToMeaning' or 'meaningToWord'
+                questions: [],
+                currentQIndex: 0,
+                score: 0,
+                mistakes: [],
+                selectedAnswer: null
             }
         };
 
-        // 전역 상태 변수들 (화면 제어 및 플래시카드 로직용)
-        let currentFlatList = [];     // 현재 선택된 단원의 단어 리스트
-        let currentCardIndex = 0;     // 현재 보고 있는 카드의 번호
-        let isFlipped = false;        // 카드가 뒤집혀 있는지 여부
-        let globalWordIndex = 0;      // 아코디언 버그 방지를 위한 고유 ID 카운터
+        const mainContent = document.getElementById('main-content');
 
-        // 사이드바 메뉴 동적 렌더링 함수
-        function renderMenu() {
-            const menuContainer = document.getElementById('menuContainer');
-            let menuHTML = '';
+        function render() {
+            if (state.tab === 'study') {
+                renderStudyView();
+            } else {
+                renderTestView();
+            }
+            updateNavigation();
+        }
 
-            // database 객체를 순회하며 HTML 메뉴 만들기
-            for (const book in database) {
-                menuHTML += `
-                    <div class="mb-6">
-                        <h3 class="text-[11px] font-black text-slate-400 mb-2 px-5 uppercase tracking-widest">${book}</h3>
-                        <ul class="space-y-0.5">
+        function updateNavigation() {
+            const tabStudy = document.getElementById('tab-study');
+            const tabTest = document.getElementById('tab-test');
+            
+            if (state.tab === 'study') {
+                tabStudy.className = "tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-indigo-600";
+                tabTest.className = "tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-gray-600";
+            } else {
+                tabStudy.className = "tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-gray-600";
+                tabTest.className = "tab-btn flex-1 py-4 flex flex-col items-center justify-center space-y-1 text-indigo-600";
+            }
+        }
+
+        function switchTab(tabName) {
+            state.tab = tabName;
+            render();
+        }
+
+        function renderStudyView() {
+            const filteredWords = VOCAB_LIST.filter(v => v.day === state.studyDay);
+            const dayGroups = [...new Set(filteredWords.map(v => v.group))].sort();
+
+            let optionsHtml = ALL_DAYS.map(day => 
+                `<option value="${day}" ${state.studyDay === day ? 'selected' : ''}>Day ${day} 학습하기</option>`
+            ).join('');
+
+            let groupsHtml = dayGroups.map(group => {
+                const wordsInGroup = filteredWords.filter(v => v.group === group);
+                const wordsHtml = wordsInGroup.map(item => `
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xl font-black text-gray-900">${item.word}</span>
+                            <span class="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded text-right leading-tight max-w-[50%]">${item.meaning}</span>
+                        </div>
+                        <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded-xl mt-3 space-y-1">
+                            <p><span class="font-semibold text-gray-800">🌱 어원:</span> ${item.etymology}</p>
+                            <p><span class="font-semibold text-gray-800">🔗 동계어:</span> ${item.cognates}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="space-y-3">
+                        <h3 class="font-bold text-indigo-700 border-b border-indigo-200 pb-2 ml-1 mt-4">${group}</h3>
+                        <div class="grid grid-cols-1 gap-3">
+                            ${wordsHtml}
+                        </div>
+                    </div>
                 `;
-                
-                for (const lesson in database[book]) {
-                    // 특수문자나 띄어쓰기를 없애 안전한 HTML ID 생성
-                    const safeId = `menu-${book.replace(/\s+/g, '')}-${lesson.replace(/[^a-zA-Z0-9]/g, '')}`;
-                    menuHTML += `
-                        <li>
-                            <button id="${safeId}" onclick="loadLesson('${book}', '${lesson}', '${safeId}')" 
-                                class="menu-item w-full text-left px-5 py-2.5 text-sm text-slate-600 font-medium hover:bg-slate-100 transition flex items-center group">
-                                <i class="fa-solid fa-chevron-right text-[9px] mr-3 opacity-30 group-hover:opacity-70 group-hover:translate-x-1 transition-all"></i>
-                                ${lesson}
-                            </button>
-                        </li>
-                    `;
+            }).join('');
+
+            mainContent.innerHTML = `
+                <div class="pb-24">
+                    <div class="p-4 space-y-2 sticky top-0 bg-gray-50/95 backdrop-blur-md z-10 border-b border-gray-200">
+                        <div class="flex justify-between items-center mb-1">
+                            <h2 class="text-xl font-bold text-gray-800">어원별 단어장</h2>
+                            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">총 ${filteredWords.length} 단어</span>
+                        </div>
+                        <select 
+                            class="w-full p-3 bg-white border border-gray-300 rounded-xl shadow-sm text-sm font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none appearance-none"
+                            onchange="changeStudyDay(this.value)"
+                        >
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="p-4 space-y-6">
+                        ${groupsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        window.changeStudyDay = function(day) {
+            state.studyDay = day;
+            render();
+        }
+
+        function renderTestView() {
+            if (state.test.status === 'config') {
+                renderTestConfig();
+            } else if (state.test.status === 'active') {
+                renderActiveTest();
+            } else if (state.test.status === 'finished') {
+                renderTestResults();
+            }
+        }
+
+        function renderTestConfig() {
+            let dayOptions = `<option value="ALL" ${state.test.day === 'ALL' ? 'selected' : ''}>전체 범위 (All Days)</option>`;
+            dayOptions += ALL_DAYS.map(day => 
+                `<option value="${day}" ${state.test.day === day ? 'selected' : ''}>Day ${day}</option>`
+            ).join('');
+
+            mainContent.innerHTML = `
+                <div class="flex flex-col items-center justify-center min-h-full p-6 space-y-6 text-gray-800 pb-24">
+                    <div class="text-center space-y-2">
+                        <h2 class="text-2xl font-bold text-indigo-700">단어 테스트</h2>
+                        <p class="text-sm text-gray-500">각 강(Day)별로 학습한 내용을 확인해보세요!</p>
+                    </div>
+                    
+                    <div class="w-full max-w-sm bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-700">학습 범위 (Day)</label>
+                            <select onchange="updateTestConfig('day', this.value)" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold appearance-none">
+                                ${dayOptions}
+                            </select>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-700">문제 수</label>
+                            <select onchange="updateTestConfig('amount', this.value)" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 appearance-none">
+                                <option value="10" ${state.test.amount == 10 ? 'selected' : ''}>10 문제</option>
+                                <option value="20" ${state.test.amount == 20 ? 'selected' : ''}>20 문제</option>
+                                <option value="30" ${state.test.amount == 30 ? 'selected' : ''}>30 문제</option>
+                                <option value="ALL" ${state.test.amount === 'ALL' ? 'selected' : ''}>전체 문제</option>
+                            </select>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-semibold text-gray-700">테스트 유형</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="updateTestConfig('type', 'wordToMeaning')" class="p-3 text-sm font-medium rounded-xl transition ${state.test.type === 'wordToMeaning' ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                                    영단어 ➔ 뜻
+                                </button>
+                                <button onclick="updateTestConfig('type', 'meaningToWord')" class="p-3 text-sm font-medium rounded-xl transition ${state.test.type === 'meaningToWord' ? 'bg-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}">
+                                    뜻 ➔ 영단어
+                                </button>
+                            </div>
+                        </div>
+
+                        <button onclick="startTest()" class="w-full py-4 mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                            테스트 시작
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.updateTestConfig = function(key, value) {
+            state.test[key] = (key === 'amount' && value !== 'ALL') ? Number(value) : value;
+            if (key === 'type') renderTestConfig(); 
+        }
+
+        window.startTest = function() {
+            let pool = state.test.day === 'ALL' ? VOCAB_LIST : VOCAB_LIST.filter(v => v.day === state.test.day);
+            
+            // Randomly select N words
+            const shuffled = [...pool].sort(() => 0.5 - Math.random());
+            const amount = state.test.amount === 'ALL' ? shuffled.length : Math.min(state.test.amount, shuffled.length);
+            const selected = shuffled.slice(0, amount);
+            
+            // Generate options
+            state.test.questions = selected.map(qWord => {
+                const options = new Set([qWord]);
+                while (options.size < 4 && options.size < VOCAB_LIST.length) {
+                    const randomItem = VOCAB_LIST[Math.floor(Math.random() * VOCAB_LIST.length)];
+                    if (!Array.from(options).some(opt => opt.id === randomItem.id)) {
+                        options.add(randomItem);
+                    }
                 }
-                menuHTML += `</ul></div>`;
-            }
-            menuContainer.innerHTML = menuHTML;
+                return {
+                    correct: qWord,
+                    options: Array.from(options).sort(() => 0.5 - Math.random())
+                };
+            });
+
+            state.test.currentQIndex = 0;
+            state.test.score = 0;
+            state.test.mistakes = [];
+            state.test.selectedAnswer = null;
+            state.test.status = 'active';
+            render();
         }
 
-        // 특정 단원을 클릭했을 때 화면 데이터를 갈아끼우는 함수
-        function loadLesson(book, lesson, menuId) {
-            // 1. 모든 메뉴의 하이라이트(active) 효과 지우기
-            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-            // 2. 방금 클릭한 메뉴만 하이라이트 효과 넣기
-            document.getElementById(menuId).classList.add('active');
+        function renderActiveTest() {
+            const q = state.test.questions[state.test.currentQIndex];
+            const isW2M = state.test.type === 'wordToMeaning';
+            const progress = (state.test.currentQIndex / state.test.questions.length) * 100;
 
-            // 3. 상단 헤더 텍스트 변경
-            document.getElementById('currentLessonTitle').innerText = lesson;
-            document.getElementById('currentBookTitle').innerText = book;
-            
-            // 4. 모드 전환 버튼(카드모드) 노출
-            document.getElementById('modeToggleBtn').classList.remove('hidden');
-
-            // 5. 현재 학습할 단어 데이터 배열을 전역 변수에 저장
-            currentFlatList = database[book][lesson];
-            currentCardIndex = 0; // 카드 인덱스 초기화
-            globalWordIndex = 0;  // 아코디언 고유 ID 카운터 초기화
-
-            // 6. 모바일 환경이면 클릭 시 자동으로 사이드바 닫기
-            if(window.innerWidth < 768) {
-                toggleSidebar();
-            }
-
-            // 7. 메인 리스트 뷰 그리기 함수 호출
-            renderList();
-        }
-
-        // 메인 리스트 뷰(아코디언 형태) 렌더링 함수
-        function renderList() {
-            const listView = document.getElementById('listView');
-            let htmlContent = '';
-            
-            // 단어를 'group' 속성별로 묶어서 새 객체(groupedData) 생성
-            const groupedData = currentFlatList.reduce((acc, word) => {
-                if (!acc[word.group]) acc[word.group] = [];
-                acc[word.group].push(word);
-                return acc;
-            }, {});
-
-            // 그룹별로 화면에 그리기
-            for (const [groupName, groupWords] of Object.entries(groupedData)) {
-                htmlContent += `
-                    <div class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="bg-blue-50 border-b border-blue-100 py-2.5 px-4 flex items-center">
-                            <div class="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
-                            <h2 class="text-sm font-bold text-blue-800">${groupName}</h2>
-                        </div>
-                        <div class="divide-y divide-slate-100">
-                `;
+            let optionsHtml = q.options.map((opt, i) => {
+                let btnClass = "option-btn w-full p-4 text-left rounded-2xl font-medium border-2 transition-all ";
                 
-                groupWords.forEach((item) => {
-                    // 완벽하게 고유한 ID 할당 (클릭 오류 방지)
-                    const id = `word-item-${globalWordIndex++}`;
-                    htmlContent += `
-                        <div>
-                            <!-- 단어 표제어 부분 (클릭 시 펼쳐짐) -->
-                            <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-slate-50 transition" onclick="toggleAccordion('${id}')">
-                                <div class="pr-4">
-                                    <h3 class="text-lg font-extrabold text-slate-800">${item.word}</h3>
-                                    <p class="text-[0.9rem] font-medium text-slate-500 mt-0.5">${item.meaning}</p>
-                                </div>
-                                <div class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-400 flex-shrink-0">
-                                    <i id="icon-${id}" class="fa-solid fa-chevron-down transition-transform duration-300 text-sm"></i>
-                                </div>
-                            </div>
-                            
-                            <!-- 숨겨진 상세 설명 부분 (아코디언) -->
-                            <div id="content-${id}" class="accordion-content bg-slate-50 px-5 border-t border-slate-100">
-                                <div class="mb-1">
-                                    <span class="inline-block bg-emerald-100 text-emerald-800 text-[10px] px-2 py-1 rounded-md font-bold mb-1.5 uppercase tracking-wide"><i class="fa-solid fa-lightbulb mr-1"></i> 메타인지 어원</span>
-                                    <p class="text-sm text-slate-700 leading-relaxed font-medium break-keep">${item.root}</p>
-                                </div>
-                            </div>
+                if (state.test.selectedAnswer) {
+                    if (opt.id === q.correct.id) {
+                        btnClass += "bg-green-50 border-green-500 text-green-700"; 
+                    } else if (state.test.selectedAnswer === opt.id) {
+                        btnClass += "bg-red-50 border-red-500 text-red-700"; 
+                    } else {
+                        btnClass += "bg-white border-gray-100 text-gray-400 opacity-50"; 
+                    }
+                } else {
+                    btnClass += "bg-white border-gray-200 text-gray-700 hover:border-indigo-300 active:bg-indigo-50";
+                }
+
+                const displayStr = isW2M ? opt.meaning : opt.word;
+                return `<button onclick="handleAnswer(${opt.id})" ${state.test.selectedAnswer ? 'disabled' : ''} class="${btnClass}">${displayStr}</button>`;
+            }).join('');
+
+            mainContent.innerHTML = `
+                <div class="flex flex-col items-center min-h-full p-4 pb-24">
+                    <div class="w-full max-w-md flex justify-between items-center mb-6 px-2 mt-2">
+                        <div class="text-sm font-bold text-gray-400">Question ${state.test.currentQIndex + 1} / ${state.test.questions.length}</div>
+                        <div class="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Score: ${state.test.score}</div>
+                    </div>
+
+                    <div class="w-full flex bg-gray-200 h-2 rounded-full mb-8 overflow-hidden">
+                        <div class="bg-indigo-500 h-full transition-all duration-300" style="width: ${progress}%"></div>
+                    </div>
+
+                    <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center mb-8 flex flex-col justify-center min-h-[200px]">
+                        <div class="flex justify-center items-center space-x-2 mb-4">
+                            <span class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">Day ${q.correct.day}</span>
+                            <span class="text-xs font-medium text-gray-400">${q.correct.group}</span>
                         </div>
-                    `;
-                });
-                htmlContent += `</div></div>`;
-            }
-            listView.innerHTML = htmlContent;
-            
-            // 리스트가 업데이트될 때 플래시카드 데이터도 준비해 둠
-            updateFlashcard();
+                        <h2 class="text-4xl font-black text-gray-800 leading-tight break-words">
+                            ${isW2M ? q.correct.word : q.correct.meaning}
+                        </h2>
+                    </div>
+
+                    <div class="w-full max-w-md space-y-3">
+                        ${optionsHtml}
+                    </div>
+                </div>
+            `;
         }
 
-        // 아코디언(숨김 내용 펼치기) 토글 함수
-        function toggleAccordion(id) {
-            const content = document.getElementById(`content-${id}`);
-            const icon = document.getElementById(`icon-${id}`);
-            if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                icon.classList.remove('rotate-180');
+        window.handleAnswer = function(optionId) {
+            if (state.test.selectedAnswer !== null) return;
+
+            const q = state.test.questions[state.test.currentQIndex];
+            const isCorrect = optionId === q.correct.id;
+            
+            state.test.selectedAnswer = optionId;
+
+            if (isCorrect) {
+                state.test.score++;
             } else {
-                content.classList.add('open');
-                icon.classList.add('rotate-180');
+                state.test.mistakes.push(q.correct);
             }
+
+            render(); // re-render to show colors
+
+            setTimeout(() => {
+                if (state.test.currentQIndex + 1 < state.test.questions.length) {
+                    state.test.currentQIndex++;
+                    state.test.selectedAnswer = null;
+                } else {
+                    state.test.status = 'finished';
+                }
+                render();
+            }, 1000);
         }
 
-        // 모바일 사이드바 열기/닫기 토글 함수
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            if (sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-                overlay.classList.add('hidden');
-            } else {
-                sidebar.classList.add('open');
-                overlay.classList.remove('hidden');
+        function renderTestResults() {
+            const total = state.test.questions.length;
+            const score = state.test.score;
+            
+            let message = "틀린 단어는 아래에서 다시 복습해보세요.";
+            if (score === total) message = "완벽합니다! 모든 단어를 마스터했어요! 🎉";
+
+            let mistakesHtml = '';
+            if (state.test.mistakes.length > 0) {
+                mistakesHtml = `
+                    <div class="w-full max-w-sm space-y-3 mt-6">
+                        <h3 class="font-bold text-red-500 mb-2 px-2">오답 노트 (${state.test.mistakes.length})</h3>
+                        ${state.test.mistakes.map(m => `
+                            <div class="bg-white p-4 rounded-xl shadow-sm border border-red-100 text-left">
+                                <div class="flex justify-between items-center mb-1">
+                                    <div class="font-bold text-lg text-gray-800">${m.word}</div>
+                                    <span class="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded">Day ${m.day}</span>
+                                </div>
+                                <div class="text-blue-600 text-sm font-medium mb-2">${m.meaning}</div>
+                                <div class="text-xs text-gray-500 bg-gray-50 p-2 rounded-lg">
+                                    <span class="font-semibold text-gray-700">어원:</span> ${m.etymology}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             }
+
+            mainContent.innerHTML = `
+                <div class="flex flex-col items-center p-6 pb-24 text-center">
+                    <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-sm border border-gray-100 mt-4">
+                        <h2 class="text-3xl font-black text-indigo-700 mb-2">결과 확인</h2>
+                        <div class="text-6xl font-bold text-gray-800 my-6">
+                            ${score} <span class="text-2xl text-gray-400">/ ${total}</span>
+                        </div>
+                        <p class="text-gray-600">${message}</p>
+                    </div>
+
+                    ${mistakesHtml}
+
+                    <button onclick="resetTest()" class="w-full max-w-sm mt-8 py-4 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl transition shadow-md active:scale-95">
+                        테스트 다시 설정하기
+                    </button>
+                </div>
+            `;
         }
 
-        // 리스트 모드 <-> 플래시카드 모드 전환 함수
-        function toggleFlashcardMode() {
-            if(currentFlatList.length === 0) return; // 선택된 단원이 없으면 작동 안 함
-            
-            const flashcardView = document.getElementById('flashcardView');
-            const modeBtn = document.getElementById('modeToggleBtn');
-            const listView = document.getElementById('listView');
-            
-            if (flashcardView.classList.contains('hidden')) {
-                // 카드 모드 열기
-                flashcardView.classList.remove('hidden');
-                flashcardView.classList.add('flex');
-                listView.classList.add('hidden'); // 뒷배경 스크롤 방지용으로 리스트 숨김
-                modeBtn.innerHTML = '<i class="fa-solid fa-list mr-1"></i> 목록보기';
-                updateFlashcard();
-            } else {
-                // 리스트 모드로 돌아가기
-                flashcardView.classList.add('hidden');
-                flashcardView.classList.remove('flex');
-                listView.classList.remove('hidden');
-                modeBtn.innerHTML = '<i class="fa-solid fa-clone mr-1"></i> 카드모드';
-            }
+        window.resetTest = function() {
+            state.test.status = 'config';
+            render();
         }
 
-        // 플래시카드 안의 텍스트 업데이트 함수
-        function updateFlashcard() {
-            if(currentFlatList.length === 0) return;
-            const item = currentFlatList[currentCardIndex];
-            
-            document.getElementById('cardGroup').innerText = item.group;
-            document.getElementById('cardWord').innerText = item.word;
-            document.getElementById('cardWordBack').innerText = item.word;
-            document.getElementById('cardMeaning').innerText = item.meaning;
-            document.getElementById('cardRoot').innerText = item.root;
-            
-            document.getElementById('flashcardCounter').innerText = `${currentCardIndex + 1} / ${currentFlatList.length}`;
-            
-            // 다른 카드로 넘어갈 땐 무조건 앞면(단어)이 보이도록 덮어둠
-            if(isFlipped) {
-                document.getElementById('flashcard').classList.remove('rotate-y-180');
-                isFlipped = false;
-            }
-        }
+        // Initialize App
+        render();
 
-        // 3D 카드 뒤집기 애니메이션 트리거
-        function flipCard() {
-            const card = document.getElementById('flashcard');
-            isFlipped = !isFlipped;
-            card.classList.toggle('rotate-y-180');
-        }
-
-        // 이전 카드로 이동
-        function prevCard() {
-            currentCardIndex = (currentCardIndex > 0) ? currentCardIndex - 1 : currentFlatList.length - 1;
-            updateFlashcard();
-        }
-
-        // 다음 카드로 이동
-        function nextCard() {
-            currentCardIndex = (currentCardIndex < currentFlatList.length - 1) ? currentCardIndex + 1 : 0;
-            updateFlashcard();
-        }
-
-        // 웹 브라우저가 켜질 때 최초 실행되는 함수
-        window.onload = () => {
-            renderMenu(); // 사이드바 메뉴 생성
-            
-            // (옵션) 시작할 때 첫 번째 교재의 첫 번째 단원을 자동으로 열어주고 싶다면 아래 코드 활성화
-            // loadLesson("워마 중등실력", "Day 6 (음식/식재료)", "menu-워마중등실력-Day6음식식재료");
-        };
     </script>
 </body>
 </html>
